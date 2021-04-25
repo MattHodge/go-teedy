@@ -1,11 +1,14 @@
-package teedy
+package teedy_test
 
 import (
 	"bytes"
-	"github.com/MattHodge/go-teedy/mocks"
 	"io/ioutil"
 	"net/http"
 	"testing"
+
+	"github.com/MattHodge/go-teedy/mocks"
+	"github.com/MattHodge/go-teedy/teedy"
+	"github.com/stretchr/testify/require"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -34,22 +37,57 @@ func TestTagService_GetAll(t *testing.T) {
 			Body:       ioutil.NopCloser(bytes.NewReader([]byte(body))),
 		}, nil
 	}}
-	client := NewFakeClient(httpClient)
+	client := teedy.NewFakeClient(httpClient)
 
 	tags, err := client.Tag.GetAll()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, tags.Tags, 2)
 }
 
 func TestTagService_NewTag_Invalid_Color(t *testing.T) {
-	tag, err := NewTag("test", "wrong", "")
+	tag, err := teedy.NewTag("test", "wrong", "")
 
 	assert.Nil(t, tag)
 	assert.Error(t, err, "a non-hex color for a tag should error")
 }
-func TestTagService_NewTag(t *testing.T) {
-	tag, err := NewTag("test", "#ff0000", "")
 
-	assert.NotNil(t, tag, "creating a new valid tag should not be nil")
+func TestTagService_NewTag(t *testing.T) {
+	tag, err := teedy.NewTag("test", "#ff0000", "")
+
+	require.NotNil(t, tag, "creating a new valid tag should not be nil")
 	assert.NoError(t, err, "creating a valid tag should not cause an error")
+}
+
+func TestTagService_AddTag_Integration(t *testing.T) {
+	if testing.Short() {
+		t.Skip(testSkippingIntegrationTest)
+	}
+
+	client := setup(t)
+
+	tag, err := teedy.NewTag("test", "#fff000", "")
+	require.NotNil(t, tag, "creating a new valid tag should not be nil")
+
+	createdTag, err := client.Tag.Add(tag)
+	require.NoError(t, err, "adding a new tag should not cause error")
+	assert.NotNil(t, createdTag.Id, "added tag should be returned with an id")
+}
+
+func TestTagService_DeleteTag_Integration(t *testing.T) {
+	if testing.Short() {
+		t.Skip(testSkippingIntegrationTest)
+	}
+
+	client := setup(t)
+
+	tag, err := teedy.NewTag("test", "#fff000", "")
+	require.NotNil(t, tag, "creating a new valid tag should not be nil")
+
+	createdTag, err := client.Tag.Add(tag)
+	require.NoError(t, err, "adding a new tag should not cause error")
+
+	tagDeleteStatus, err := client.Tag.Delete(createdTag.Id)
+
+	require.NoError(t, err, "deleting tag should not error")
+	assert.Equal(t, tagDeleteStatus.Status, "ok", "tag delete status should be ok")
 }

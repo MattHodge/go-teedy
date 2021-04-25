@@ -25,6 +25,10 @@ type Tag struct {
 	Parent string `json:"parent,omitempty"`
 }
 
+type TagDeleteStatus struct {
+	Status string `json:"status"`
+}
+
 func NewTag(name, color, parent string) (*Tag, error) {
 	re := regexp.MustCompile(`^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$`)
 
@@ -77,4 +81,16 @@ func (t *TagService) Add(tag *Tag) (*Tag, error) {
 	}
 
 	return returnTag.(*Tag), nil
+}
+
+func (t *TagService) Delete(id string) (*TagDeleteStatus, error) {
+	endpoint := fmt.Sprintf("api/tag/%s", id)
+
+	tagDeleteStatus, err := t.client.request(endpoint, "DELETE", nil, new(TagDeleteStatus))
+
+	if err != nil {
+		return nil, fmt.Errorf("error deleting tag: %v", err)
+	}
+
+	return tagDeleteStatus.(*TagDeleteStatus), nil
 }

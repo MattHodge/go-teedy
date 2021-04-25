@@ -20,7 +20,8 @@ type Client struct {
 	authCookie string
 	httpclient HTTPClient
 
-	Tag *TagService
+	Tag      *TagService
+	Document *DocumentService
 }
 
 func NewClient(httpClient HTTPClient, teedyUrl, username, password string) (*Client, error) {
@@ -49,9 +50,14 @@ func NewClient(httpClient HTTPClient, teedyUrl, username, password string) (*Cli
 
 	cookies := resp.Cookies()
 
+	if len(cookies) == 0 {
+		return nil, fmt.Errorf("no cookie returned, likely auth failure")
+	}
+
 	s.authCookie = strings.Join([]string{cookies[0].Name, "=", cookies[0].Value}, "")
 
 	s.Tag = NewTagService(s)
+	s.Document = NewDocumentService(s)
 
 	return s, nil
 }
@@ -63,6 +69,7 @@ func NewFakeClient(httpClient HTTPClient) *Client {
 	}
 
 	s.Tag = NewTagService(s)
+	s.Document = NewDocumentService(s)
 
 	return s
 }

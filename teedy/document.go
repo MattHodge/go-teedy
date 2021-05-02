@@ -84,7 +84,7 @@ type Document struct {
 }
 
 type DocumentDeleteStatus struct {
-	status string `json:"Status"`
+	Status string `json:"Status"`
 }
 
 func NewDocument(title, language string) (*Document, error) {
@@ -96,7 +96,7 @@ func NewDocument(title, language string) (*Document, error) {
 
 func (t *DocumentService) GetAll() (*DocumentList, error) {
 	endpoint := "api/document/list"
-	docs, err := t.client.request(endpoint, "GET", nil, new(DocumentList))
+	docs, err := t.client.requestUnmarshal(endpoint, "GET", nil, new(DocumentList))
 
 	if err != nil {
 		return nil, fmt.Errorf("error getting all documents: %v", err)
@@ -106,8 +106,8 @@ func (t *DocumentService) GetAll() (*DocumentList, error) {
 }
 
 func (t *DocumentService) Get(id string) (*Document, error) {
-	endpoint := fmt.Sprintf("api/tag/%s", id)
-	tag, err := t.client.request(endpoint, "GET", nil, new(Document))
+	endpoint := fmt.Sprintf("api/document/%s", id)
+	tag, err := t.client.requestUnmarshal(endpoint, "GET", nil, new(Document))
 
 	if err != nil {
 		return nil, fmt.Errorf("error getting tag: %v", err)
@@ -148,19 +148,19 @@ func (t *DocumentService) Add(d *Document) (*Document, error) {
 		return nil, fmt.Errorf("error getting form values for document: %v", err)
 	}
 
-	returnTag, err := t.client.request(endpoint, "PUT", body, new(Document))
+	r, err := t.client.requestUnmarshal(endpoint, "PUT", body, new(Document))
 
 	if err != nil {
 		return nil, fmt.Errorf("error adding document: %v", err)
 	}
 
-	return returnTag.(*Document), nil
+	return r.(*Document), nil
 }
 
 func (t *DocumentService) Delete(id string) (*DocumentDeleteStatus, error) {
 	endpoint := fmt.Sprintf("api/tag/%s", id)
 
-	tagDeleteStatus, err := t.client.request(endpoint, "DELETE", nil, new(DocumentDeleteStatus))
+	tagDeleteStatus, err := t.client.requestUnmarshal(endpoint, "DELETE", nil, new(DocumentDeleteStatus))
 
 	if err != nil {
 		return nil, fmt.Errorf("error deleting tag: %v", err)

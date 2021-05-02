@@ -1,13 +1,16 @@
 package teedy
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"net/url"
-	"strconv"
+	"os"
 	"strings"
 )
 
@@ -22,6 +25,7 @@ type Client struct {
 
 	Tag      *TagService
 	Document *DocumentService
+	File     *FileService
 }
 
 func NewClient(httpClient HTTPClient, teedyUrl, username, password string) (*Client, error) {
@@ -58,6 +62,7 @@ func NewClient(httpClient HTTPClient, teedyUrl, username, password string) (*Cli
 
 	s.Tag = NewTagService(s)
 	s.Document = NewDocumentService(s)
+	s.File = NewFileService(s)
 
 	return s, nil
 }
@@ -78,35 +83,63 @@ func (t *Client) getAPIUrl(apiUrl string) string {
 	return strings.Join([]string{t.url, apiUrl}, "/")
 }
 
-func (t *Client) request(endpoint string, method string, body url.Values, returnType interface{}) (interface{}, error) {
-	fullUrl := t.getAPIUrl(endpoint)
+func (t *Client) multipartUpload(endpoint, method string, params map[string]string, file *os.File) ([]byte, error) {
 
-	req, err := http.NewRequest(method, fullUrl, strings.NewReader(body.Encode()))
+	fileContents, err := ioutil.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+	fi, err := file.Stat()
+	if err != nil {
+		return nil, err
+	}
+	file.Close()
+
+	b := new(bytes.Buffer)
+	writer := multipart.NewWriter(b)
+	part, err := writer.CreateFormFile("file", fi.Name())
+	if err != nil {
+		return nil, err
+	}
+	part.Write(fileContents)
+
+	for key, val := range params {
+		_ = writer.WriteField(key, val)
+	}
+
+	err = writer.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := t.newRequest(method, endpoint, b)
 
 	if err != nil {
-		return nil, fmt.Errorf("error building request: %v", err)
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", writer.FormDataContentType())
+
+	return t.doRequest(req)
+}
+
+func (t *Client) request(endpoint string, method string, body url.Values) ([]byte, error) {
+	req, err := t.newRequest(method, endpoint, strings.NewReader(body.Encode()))
+
+	if err != nil {
+		return nil, err
 	}
 
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Add("Content-Length", strconv.Itoa(len(body.Encode())))
 
-	// build the auth header
-	req.Header.Set("Cookie", t.authCookie)
+	return t.doRequest(req)
+}
 
-	resp, err := t.httpclient.Do(req)
-
-	if err != nil {
-		return nil, fmt.Errorf("error sending request: %v", err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("invalid response code: %s", resp.Status)
-	}
-
-	data, err := ioutil.ReadAll(resp.Body)
+func (t *Client) requestUnmarshal(endpoint string, method string, body url.Values, returnType interface{}) (interface{}, error) {
+	data, err := t.request(endpoint, method, body)
 
 	if err != nil {
-		return nil, fmt.Errorf("error reading response: %v", err)
+		return nil, err
 	}
 
 	return unmarshalResponse(data, returnType)
@@ -120,4 +153,38 @@ func unmarshalResponse(data []byte, t interface{}) (interface{}, error) {
 	}
 
 	return t, nil
+}
+
+func (t *Client) newRequest(method, endpoint string, body io.Reader) (*http.Request, error) {
+	fullUrl := t.getAPIUrl(endpoint)
+
+	req, err := http.NewRequest(method, fullUrl, body)
+
+	if err != nil {
+		return nil, fmt.Errorf("unable to build new request: %v", err)
+	}
+
+	req.Header.Set("Cookie", t.authCookie)
+
+	return req, nil
+}
+
+func (t *Client) doRequest(req *http.Request) ([]byte, error) {
+	resp, err := t.httpclient.Do(req)
+
+	if err != nil {
+		return nil, fmt.Errorf("error sending requestUnmarshal: %v", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("invalid response code: %s", resp.Status)
+	}
+
+	data, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		return nil, fmt.Errorf("error reading response: %v", err)
+	}
+
+	return data, nil
 }

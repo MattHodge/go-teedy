@@ -1,7 +1,7 @@
 docker_compose('integration_tests/docker-compose.yml')
 
 local_resource("🔁 tests",
-  cmd = "go test -v ./...",
+  cmd = "go test -v ./... -count=1",
   auto_init = False,
   trigger_mode = TRIGGER_MODE_MANUAL,
 )

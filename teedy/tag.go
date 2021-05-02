@@ -45,7 +45,7 @@ func NewTag(name, color, parent string) (*Tag, error) {
 
 func (t *TagService) GetAll() (*TagList, error) {
 	endpoint := "api/tag/list"
-	tags, err := t.client.request(endpoint, "GET", nil, new(TagList))
+	tags, err := t.client.requestUnmarshal(endpoint, "GET", nil, new(TagList))
 
 	if err != nil {
 		return nil, fmt.Errorf("error getting all tags: %v", err)
@@ -56,7 +56,7 @@ func (t *TagService) GetAll() (*TagList, error) {
 
 func (t *TagService) Get(id string) (*Tag, error) {
 	endpoint := fmt.Sprintf("api/tag/%s", id)
-	tag, err := t.client.request(endpoint, "GET", nil, new(Tag))
+	tag, err := t.client.requestUnmarshal(endpoint, "GET", nil, new(Tag))
 
 	if err != nil {
 		return nil, fmt.Errorf("error getting tag: %v", err)
@@ -74,7 +74,7 @@ func (t *TagService) Add(tag *Tag) (*Tag, error) {
 		"parent": {tag.Parent},
 	}
 
-	returnTag, err := t.client.request(endpoint, "PUT", formData, new(Tag))
+	returnTag, err := t.client.requestUnmarshal(endpoint, "PUT", formData, new(Tag))
 
 	if err != nil {
 		return nil, fmt.Errorf("error adding tag: %v", err)
@@ -86,7 +86,7 @@ func (t *TagService) Add(tag *Tag) (*Tag, error) {
 func (t *TagService) Delete(id string) (*TagDeleteStatus, error) {
 	endpoint := fmt.Sprintf("api/tag/%s", id)
 
-	tagDeleteStatus, err := t.client.request(endpoint, "DELETE", nil, new(TagDeleteStatus))
+	tagDeleteStatus, err := t.client.requestUnmarshal(endpoint, "DELETE", nil, new(TagDeleteStatus))
 
 	if err != nil {
 		return nil, fmt.Errorf("error deleting tag: %v", err)

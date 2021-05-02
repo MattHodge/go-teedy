@@ -94,3 +94,21 @@ func (t *TagService) Delete(id string) (*TagDeleteStatus, error) {
 
 	return tagDeleteStatus.(*TagDeleteStatus), nil
 }
+
+func (t *TagService) Update(id string, tag *Tag) (*Tag, error) {
+	endpoint := fmt.Sprintf("api/tag/%s", id)
+
+	formData := url.Values{
+		"name":   {tag.Name},
+		"color":  {tag.Color},
+		"parent": {tag.Parent},
+	}
+
+	returnTag, err := t.client.requestUnmarshal(endpoint, "POST", formData, new(Tag))
+
+	if err != nil {
+		return nil, fmt.Errorf("error updating tag: %v", err)
+	}
+
+	return returnTag.(*Tag), nil
+}

@@ -91,3 +91,33 @@ func TestTagService_DeleteTag_Integration(t *testing.T) {
 	require.NoError(t, err, "deleting tag should not error")
 	assert.Equal(t, tagDeleteStatus.Status, "ok", "tag delete status should be ok")
 }
+
+func TestTagService_UpdateTag_Integration(t *testing.T) {
+	if testing.Short() {
+		t.Skip(testSkippingIntegrationTest)
+	}
+
+	const (
+		updatedTagColor = "#ff7816"
+		updatedTagName  = "biz"
+	)
+
+	client := setup(t)
+
+	tag, err := teedy.NewTag("test", "#fff000", "")
+	require.NotNil(t, tag, "creating a new valid tag should not be nil")
+
+	createdTag, err := client.Tag.Add(tag)
+	require.NoError(t, err, "adding a new tag should not cause error")
+
+	tagNewColor, err := teedy.NewTag(updatedTagName, updatedTagColor, "")
+
+	updatedTag, err := client.Tag.Update(createdTag.Id, tagNewColor)
+
+	require.NoError(t, err, "updating tag should not error")
+
+	updatedTagReloadedFromAPI, err := client.Tag.Get(updatedTag.Id)
+	assert.NoError(t, err, "getting updated tag should not return error")
+	assert.Equal(t, updatedTagReloadedFromAPI.Color, updatedTagColor)
+	assert.Equal(t, updatedTagReloadedFromAPI.Name, updatedTagName)
+}

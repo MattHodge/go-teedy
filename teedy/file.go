@@ -59,11 +59,28 @@ func (f *FileService) GetAll() ([]*File, error) {
 	return resp.Result().(*FileList).Files, nil
 }
 
-func (f *FileService) Get(id string) ([]byte, error) {
+func (f *FileService) Get(id string) ([]*File, error) {
+	resp, err := f.client.R().
+		SetResult(&FileList{}).
+		SetQueryParams(map[string]string{
+			"id": id,
+		}).
+		Get("api/file/list")
+
+	err = checkRequestError(resp, err, f.apiError.Get)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Result().(*FileList).Files, nil
+}
+
+func (f *FileService) GetData(id string) ([]byte, error) {
 	resp, err := f.client.R().
 		Get(fmt.Sprintf("api/file/%s/data", id))
 
-	err = checkRequestError(resp, err, f.apiError.Get)
+	err = checkRequestError(resp, err, f.apiError.Custom("get file data"))
 
 	return resp.Body(), nil
 }

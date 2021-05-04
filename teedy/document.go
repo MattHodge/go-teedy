@@ -53,40 +53,40 @@ type Relations struct {
 }
 
 type RouteStep struct {
-	Name           string `json:"name"`
-	Type           string `json:"type"`
-	Transitionable bool   `json:"transitionable"`
+	Name           string `json:"name,omitempty"`
+	Type           string `json:"type,omitempty"`
+	Transitionable bool   `json:"transitionable,omitempty"`
 }
 
 type Document struct {
-	Id              string          `json:"id,omitempty"`
-	Highlight       string          `json:"highlight,omitempty"`
-	FileID          string          `json:"file_id,omitempty"`
-	Title           string          `json:"title"`
-	Description     string          `json:"description,omitempty"`
-	CreateDate      Time            `json:"create_date,omitempty"`
-	UpdateDate      Time            `json:"update_date,omitempty"`
-	Language        string          `json:"language"`
-	Shared          bool            `json:"shared,omitempty"`
-	ActiveRoute     bool            `json:"active_route,omitempty"`
-	CurrentStepName bool            `json:"current_step_name,omitempty"`
-	FileCount       int             `json:"file_count,omitempty"`
-	Tags            []Tag           `json:"tags,omitempty"`
-	Subject         string          `json:"subject,omitempty"`
-	Identifier      string          `json:"identifier,omitempty"`
-	Publisher       string          `json:"publisher,omitempty"`
-	Format          string          `json:"format,omitempty"`
-	Source          string          `json:"source,omitempty"`
-	Type            string          `json:"type,omitempty"`
-	Coverage        string          `json:"coverage,omitempty"`
-	Rights          string          `json:"rights,omitempty"`
-	Creator         string          `json:"creator,omitempty"`
-	Writeable       bool            `json:"writeable,omitempty"`
-	ACLs            []ACLs          `json:"acls,omitempty"`
-	InheritedACLs   []InheritedACLs `json:"inherited_acls,omitempty"`
-	Contributors    []Contributors  `json:"contributors,omitempty"`
-	Relations       []Relations     `json:"relations,omitempty"`
-	RouteStep       RouteStep       `json:"route_step,omitempty"`
+	Id              string           `json:"id,omitempty"`
+	Highlight       string           `json:"highlight,omitempty"`
+	FileID          string           `json:"file_id,omitempty"`
+	Title           string           `json:"title"`
+	Description     string           `json:"description,omitempty"`
+	CreateDate      *Time            `json:"create_date,omitempty"`
+	UpdateDate      *Time            `json:"update_date,omitempty"`
+	Language        string           `json:"language"`
+	Shared          bool             `json:"shared,omitempty"`
+	ActiveRoute     bool             `json:"active_route,omitempty"`
+	CurrentStepName bool             `json:"current_step_name,omitempty"`
+	FileCount       int              `json:"file_count,omitempty"`
+	Tags            []*Tag           `json:"tags,omitempty"`
+	Subject         string           `json:"subject,omitempty"`
+	Identifier      string           `json:"identifier,omitempty"`
+	Publisher       string           `json:"publisher,omitempty"`
+	Format          string           `json:"format,omitempty"`
+	Source          string           `json:"source,omitempty"`
+	Type            string           `json:"type,omitempty"`
+	Coverage        string           `json:"coverage,omitempty"`
+	Rights          string           `json:"rights,omitempty"`
+	Creator         string           `json:"creator,omitempty"`
+	Writeable       bool             `json:"writeable,omitempty"`
+	ACLs            []*ACLs          `json:"acls,omitempty"`
+	InheritedACLs   []*InheritedACLs `json:"inherited_acls,omitempty"`
+	Contributors    []*Contributors  `json:"contributors,omitempty"`
+	Relations       []*Relations     `json:"relations,omitempty"`
+	RouteStep       *RouteStep       `json:"route_step,omitempty"`
 }
 
 type DocumentDeleteStatus struct {

@@ -20,7 +20,7 @@ func NewTagService(client *resty.Client, api string) *TagService {
 }
 
 type TagList struct {
-	Tags []Tag `json:"tags"`
+	Tags []*Tag `json:"tags"`
 }
 
 type Tag struct {
@@ -48,7 +48,7 @@ func NewTag(name, color, parent string) (*Tag, error) {
 	}, nil
 }
 
-func (t *TagService) GetAll() ([]Tag, error) {
+func (t *TagService) GetAll() ([]*Tag, error) {
 	resp, err := t.client.R().
 		SetResult(&TagList{}).
 		Get("api/tag/list")

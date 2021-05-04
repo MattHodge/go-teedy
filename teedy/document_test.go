@@ -103,9 +103,9 @@ func TestDocumentService_AddDocumentWithTag_Integration(t *testing.T) {
 	require.NoErrorf(t, err, "adding a tag should not fail")
 
 	doc, err := teedy.NewDocument("test document", "eng")
-	doc.Tags = []teedy.Tag{
-		*tag1,
-		*tag2,
+	doc.Tags = []*teedy.Tag{
+		tag1,
+		tag2,
 	}
 
 	require.NotNilf(t, doc, "creating a new valid document should not be nil")

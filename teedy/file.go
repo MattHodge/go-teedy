@@ -26,12 +26,12 @@ type File struct {
 	Version    int    `json:"version"`
 	MimeType   string `json:"mimetype"`
 	DocumentId string `json:"document_id"`
-	CreateDate Time   `json:"create_date,omitempty"`
+	CreateDate *Time  `json:"create_date,omitempty"`
 	Size       int    `json:"size"`
 }
 
 type FileList struct {
-	Files []File `json:"files,omitempty"`
+	Files []*File `json:"files,omitempty"`
 }
 
 type FileAddStatus struct {
@@ -45,7 +45,7 @@ type ZippedFile struct {
 	Content  []byte
 }
 
-func (f *FileService) GetAll() ([]File, error) {
+func (f *FileService) GetAll() ([]*File, error) {
 	resp, err := f.client.R().
 		SetResult(&FileList{}).
 		Get("api/file/list")
@@ -57,6 +57,15 @@ func (f *FileService) GetAll() ([]File, error) {
 	}
 
 	return resp.Result().(*FileList).Files, nil
+}
+
+func (f *FileService) Get(id string) ([]byte, error) {
+	resp, err := f.client.R().
+		Get(fmt.Sprintf("api/file/%s/data", id))
+
+	err = checkRequestError(resp, err, f.apiError.Get)
+
+	return resp.Body(), nil
 }
 
 func (f *FileService) Add(id, previousFileId string, file *os.File) (*FileAddStatus, error) {

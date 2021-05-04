@@ -64,6 +64,12 @@ func TestFileService_GetZippedFiles_Integration(t *testing.T) {
 
 	client := setup(t)
 	doc := createTestDocument(t, client)
+
+	// add file to it
+	file, err := loadFile(t, "testdata/image.png")
+	defer file.Close()
+	_, err = client.File.Add(doc.Id, "", file)
+
 	got, err := client.File.GetZippedFiles(doc.Id)
 
 	require.NoError(t, err, "should be no error getting zipped file")

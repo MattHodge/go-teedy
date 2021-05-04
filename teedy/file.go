@@ -3,14 +3,20 @@ package teedy
 import (
 	"fmt"
 	"os"
+
+	"github.com/go-resty/resty/v2"
 )
 
 type FileService struct {
-	client *Client
+	client   *resty.Client
+	apiError *TeedyAPIError
 }
 
-func NewFileService(client *Client) *FileService {
-	return &FileService{client: client}
+func NewFileService(client *resty.Client, api string) *FileService {
+	return &FileService{
+		client:   client,
+		apiError: NewTeedyAPIError(api),
+	}
 }
 
 type File struct {
@@ -34,20 +40,26 @@ type FileAddStatus struct {
 	Size   int    `json:"size"`
 }
 
-func (f *FileService) GetAll() (*FileList, error) {
-	endpoint := "api/file/list"
-	files, err := f.client.requestUnmarshal(endpoint, "GET", nil, new(FileList))
+type ZippedFile struct {
+	Filename string
+	Content  []byte
+}
+
+func (f *FileService) GetAll() ([]File, error) {
+	resp, err := f.client.R().
+		SetResult(&FileList{}).
+		Get("api/file/list")
+
+	err = checkRequestError(resp, err, f.apiError.GetAll)
 
 	if err != nil {
-		return nil, fmt.Errorf("error getting all files: %v", err)
+		return nil, err
 	}
 
-	return files.(*FileList), nil
+	return resp.Result().(*FileList).Files, nil
 }
 
 func (f *FileService) Add(id, previousFileId string, file *os.File) (*FileAddStatus, error) {
-	endpoint := "api/file"
-
 	params := make(map[string]string)
 
 	if len(id) > 0 {
@@ -58,29 +70,36 @@ func (f *FileService) Add(id, previousFileId string, file *os.File) (*FileAddSta
 		params["previousFileId"] = previousFileId
 	}
 
-	resp, err := f.client.multipartUpload(endpoint, "PUT", params, file)
+	fileInfo, err := file.Stat()
 
 	if err != nil {
-		return nil, fmt.Errorf("error adding file: %v", err)
+		return nil, fmt.Errorf("unable to get file information: %v", err)
 	}
 
-	fileStatus, err := unmarshalResponse(resp, new(FileAddStatus))
+	resp, err := f.client.R().
+		SetResult(&FileAddStatus{}).
+		SetFormData(params).
+		SetFileReader("file", fileInfo.Name(), file).
+		Put("api/file")
+
+	err = checkRequestError(resp, err, f.apiError.Add)
 
 	if err != nil {
-		return nil, fmt.Errorf("error unmarshelling file add status: %v", err)
+		return nil, err
 	}
 
-	return fileStatus.(*FileAddStatus), nil
+	return resp.Result().(*FileAddStatus), nil
 }
 
 func (f *FileService) GetZippedFiles(id string) ([]byte, error) {
-	endpoint := fmt.Sprintf("api/file/zip?id=%s", id)
+	resp, err := f.client.R().
+		Get(fmt.Sprintf("api/file/zip?id=%s", id))
 
-	bytes, err := f.client.request(endpoint, "GET", nil)
+	err = checkRequestError(resp, err, f.apiError.Custom("getting zipped files"))
 
 	if err != nil {
-		return nil, fmt.Errorf("error getting zipped file: %v", err)
+		return nil, err
 	}
 
-	return bytes, nil
+	return resp.Body(), nil
 }

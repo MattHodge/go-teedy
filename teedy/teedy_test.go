@@ -3,6 +3,8 @@ package teedy_test
 import (
 	"testing"
 
+	"github.com/jarcoal/httpmock"
+
 	"github.com/MattHodge/go-teedy/teedy"
 )
 
@@ -14,11 +16,18 @@ const (
 )
 
 func setup(t *testing.T) *teedy.Client {
-	client, err := teedy.NewClient(nil, testTeedyURL, testTeedyUsername, testTeedyPassword)
+	client, err := teedy.NewClient(testTeedyURL, testTeedyUsername, testTeedyPassword)
 
 	if err != nil {
 		t.Skipf("skipping test because unable to get a new client")
 	}
 
 	return client
+}
+
+// newJsonResponder returns a JSON responder for httpmock.
+func newJsonResponder(s int, c string) httpmock.Responder {
+	resp := httpmock.NewStringResponse(s, c)
+	resp.Header.Set("Content-Type", "application/json")
+	return httpmock.ResponderFromResponse(resp)
 }

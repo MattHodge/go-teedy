@@ -2,16 +2,21 @@ package teedy
 
 import (
 	"fmt"
-	"net/url"
 	"regexp"
+
+	"github.com/go-resty/resty/v2"
 )
 
 type TagService struct {
-	client *Client
+	client   *resty.Client
+	apiError *TeedyAPIError
 }
 
-func NewTagService(client *Client) *TagService {
-	return &TagService{client: client}
+func NewTagService(client *resty.Client, api string) *TagService {
+	return &TagService{
+		client:   client,
+		apiError: NewTeedyAPIError(api),
+	}
 }
 
 type TagList struct {
@@ -43,72 +48,70 @@ func NewTag(name, color, parent string) (*Tag, error) {
 	}, nil
 }
 
-func (t *TagService) GetAll() (*TagList, error) {
-	endpoint := "api/tag/list"
-	tags, err := t.client.requestUnmarshal(endpoint, "GET", nil, new(TagList))
+func (t *TagService) GetAll() ([]Tag, error) {
+	resp, err := t.client.R().
+		SetResult(&TagList{}).
+		Get("api/tag/list")
+
+	err = checkRequestError(resp, err, t.apiError.GetAll)
 
 	if err != nil {
-		return nil, fmt.Errorf("error getting all tags: %v", err)
+		return nil, err
 	}
 
-	return tags.(*TagList), nil
+	return resp.Result().(*TagList).Tags, nil
 }
 
 func (t *TagService) Get(id string) (*Tag, error) {
-	endpoint := fmt.Sprintf("api/tag/%s", id)
-	tag, err := t.client.requestUnmarshal(endpoint, "GET", nil, new(Tag))
+	resp, err := t.client.R().
+		SetResult(&Tag{}).
+		Get(fmt.Sprintf("api/tag/%s", id))
 
-	if err != nil {
-		return nil, fmt.Errorf("error getting tag: %v", err)
-	}
+	err = checkRequestError(resp, err, t.apiError.Get)
 
-	return tag.(*Tag), nil
+	return resp.Result().(*Tag), nil
 }
 
 func (t *TagService) Add(tag *Tag) (*Tag, error) {
-	endpoint := "api/tag"
+	resp, err := t.client.R().
+		SetResult(&Tag{}).
+		SetFormData(map[string]string{
+			"name":   tag.Name,
+			"color":  tag.Color,
+			"parent": tag.Parent,
+		}).
+		Put("api/tag")
 
-	formData := url.Values{
-		"name":   {tag.Name},
-		"color":  {tag.Color},
-		"parent": {tag.Parent},
-	}
-
-	returnTag, err := t.client.requestUnmarshal(endpoint, "PUT", formData, new(Tag))
+	err = checkRequestError(resp, err, t.apiError.Add)
 
 	if err != nil {
-		return nil, fmt.Errorf("error adding tag: %v", err)
+		return nil, err
 	}
 
-	return returnTag.(*Tag), nil
+	return resp.Result().(*Tag), nil
 }
 
 func (t *TagService) Delete(id string) (*TagDeleteStatus, error) {
-	endpoint := fmt.Sprintf("api/tag/%s", id)
+	resp, err := t.client.R().
+		SetResult(&TagDeleteStatus{}).
+		Delete(fmt.Sprintf("api/tag/%s", id))
 
-	tagDeleteStatus, err := t.client.requestUnmarshal(endpoint, "DELETE", nil, new(TagDeleteStatus))
+	err = checkRequestError(resp, err, t.apiError.Delete)
 
-	if err != nil {
-		return nil, fmt.Errorf("error deleting tag: %v", err)
-	}
-
-	return tagDeleteStatus.(*TagDeleteStatus), nil
+	return resp.Result().(*TagDeleteStatus), nil
 }
 
 func (t *TagService) Update(id string, tag *Tag) (*Tag, error) {
-	endpoint := fmt.Sprintf("api/tag/%s", id)
+	resp, err := t.client.R().
+		SetResult(&Tag{}).
+		SetFormData(map[string]string{
+			"name":   tag.Name,
+			"color":  tag.Color,
+			"parent": tag.Parent,
+		}).
+		Post(fmt.Sprintf("api/tag/%s", id))
 
-	formData := url.Values{
-		"name":   {tag.Name},
-		"color":  {tag.Color},
-		"parent": {tag.Parent},
-	}
+	err = checkRequestError(resp, err, t.apiError.Update)
 
-	returnTag, err := t.client.requestUnmarshal(endpoint, "POST", formData, new(Tag))
-
-	if err != nil {
-		return nil, fmt.Errorf("error updating tag: %v", err)
-	}
-
-	return returnTag.(*Tag), nil
+	return resp.Result().(*Tag), nil
 }

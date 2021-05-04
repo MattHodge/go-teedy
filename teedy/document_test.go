@@ -1,20 +1,17 @@
 package teedy_test
 
 import (
-	"bytes"
-	"io/ioutil"
-	"net/http"
 	"testing"
 
-	"github.com/MattHodge/go-teedy/mocks"
+	"github.com/jarcoal/httpmock"
+
 	"github.com/MattHodge/go-teedy/teedy"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestDocumentService_GetAll(t *testing.T) {
-	httpClient := &mocks.MockHTTPClient{DoFunc: func(req *http.Request) (*http.Response, error) {
-		const body = `
+	fixture := `
 {
   "total": 2,
   "documents": [
@@ -58,16 +55,13 @@ func TestDocumentService_GetAll(t *testing.T) {
   "suggestions": []
 }
 `
-		return &http.Response{
-			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(body))),
-		}, nil
-	}}
-	client := teedy.NewFakeClient(httpClient)
+	responder := newJsonResponder(200, fixture)
+	httpmock.RegisterResponder("GET", "http://fake/api/document/list", responder)
+	client := teedy.NewFakeClient()
 
 	docs, err := client.Document.GetAll()
 	require.NoError(t, err, "getting documents should not error")
-	assert.Len(t, docs.Documents, 2)
+	require.Len(t, docs.Documents, 2)
 	assert.Equal(t, docs.Documents[0].CreateDate.String(), "2021-03-15 23:00:00 +0000 UTC", "timestamp should exist")
 }
 

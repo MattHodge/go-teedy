@@ -1,12 +1,10 @@
 package teedy_test
 
 import (
-	"bytes"
-	"io/ioutil"
-	"net/http"
 	"testing"
 
-	"github.com/MattHodge/go-teedy/mocks"
+	"github.com/jarcoal/httpmock"
+
 	"github.com/MattHodge/go-teedy/teedy"
 	"github.com/stretchr/testify/require"
 
@@ -14,8 +12,7 @@ import (
 )
 
 func TestTagService_GetAll(t *testing.T) {
-	httpClient := &mocks.MockHTTPClient{DoFunc: func(req *http.Request) (*http.Response, error) {
-		const body = `
+	fixture := `
 {
   "tags": [
     {
@@ -32,16 +29,13 @@ func TestTagService_GetAll(t *testing.T) {
   ]
 }
 `
-		return &http.Response{
-			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(body))),
-		}, nil
-	}}
-	client := teedy.NewFakeClient(httpClient)
+	responder := newJsonResponder(200, fixture)
+	httpmock.RegisterResponder("GET", "http://fake/api/tag/list", responder)
+	client := teedy.NewFakeClient()
 
 	tags, err := client.Tag.GetAll()
 	require.NoError(t, err)
-	assert.Len(t, tags.Tags, 2)
+	assert.Len(t, tags, 2)
 }
 
 func TestTagService_NewTag_Invalid_Color(t *testing.T) {

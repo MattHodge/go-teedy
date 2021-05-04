@@ -2,14 +2,20 @@ package teedy
 
 import (
 	"fmt"
+
+	"github.com/go-resty/resty/v2"
 )
 
 type DocumentService struct {
-	client *Client
+	client   *resty.Client
+	apiError *TeedyAPIError
 }
 
-func NewDocumentService(client *Client) *DocumentService {
-	return &DocumentService{client: client}
+func NewDocumentService(client *resty.Client, api string) *DocumentService {
+	return &DocumentService{
+		client:   client,
+		apiError: NewTeedyAPIError(api),
+	}
 }
 
 type DocumentList struct {
@@ -95,30 +101,30 @@ func NewDocument(title, language string) (*Document, error) {
 }
 
 func (t *DocumentService) GetAll() (*DocumentList, error) {
-	endpoint := "api/document/list"
-	docs, err := t.client.requestUnmarshal(endpoint, "GET", nil, new(DocumentList))
+	resp, err := t.client.R().
+		SetResult(&DocumentList{}).
+		Get("api/document/list")
+
+	err = checkRequestError(resp, err, t.apiError.GetAll)
 
 	if err != nil {
-		return nil, fmt.Errorf("error getting all documents: %v", err)
+		return nil, err
 	}
 
-	return docs.(*DocumentList), nil
+	return resp.Result().(*DocumentList), nil
 }
 
 func (t *DocumentService) Get(id string) (*Document, error) {
-	endpoint := fmt.Sprintf("api/document/%s", id)
-	tag, err := t.client.requestUnmarshal(endpoint, "GET", nil, new(Document))
+	resp, err := t.client.R().
+		SetResult(&Document{}).
+		Get(fmt.Sprintf("api/document/%s", id))
 
-	if err != nil {
-		return nil, fmt.Errorf("error getting tag: %v", err)
-	}
+	err = checkRequestError(resp, err, t.apiError.Get)
 
-	return tag.(*Document), nil
+	return resp.Result().(*Document), nil
 }
 
 func (t *DocumentService) Add(d *Document) (*Document, error) {
-	endpoint := "api/document"
-
 	// builds the form data for creating a document in the teedy api
 	fv := NewFormValues()
 	fv.AddMandatory("title", d.Title)
@@ -144,27 +150,22 @@ func (t *DocumentService) Add(d *Document) (*Document, error) {
 
 	body, err := fv.Result()
 
-	if err != nil {
-		return nil, fmt.Errorf("error getting form values for document: %v", err)
-	}
+	resp, err := t.client.R().
+		SetResult(&Document{}).
+		SetFormDataFromValues(body).
+		Put("api/document")
 
-	r, err := t.client.requestUnmarshal(endpoint, "PUT", body, new(Document))
+	err = checkRequestError(resp, err, t.apiError.Add)
 
-	if err != nil {
-		return nil, fmt.Errorf("error adding document: %v", err)
-	}
-
-	return r.(*Document), nil
+	return resp.Result().(*Document), nil
 }
 
 func (t *DocumentService) Delete(id string) (*DocumentDeleteStatus, error) {
-	endpoint := fmt.Sprintf("api/tag/%s", id)
+	resp, err := t.client.R().
+		SetResult(&DocumentDeleteStatus{}).
+		Delete(fmt.Sprintf("api/document/%s", id))
 
-	tagDeleteStatus, err := t.client.requestUnmarshal(endpoint, "DELETE", nil, new(DocumentDeleteStatus))
+	err = checkRequestError(resp, err, t.apiError.Delete)
 
-	if err != nil {
-		return nil, fmt.Errorf("error deleting tag: %v", err)
-	}
-
-	return tagDeleteStatus.(*DocumentDeleteStatus), nil
+	return resp.Result().(*DocumentDeleteStatus), nil
 }

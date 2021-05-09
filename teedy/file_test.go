@@ -164,7 +164,7 @@ func getFileContents(t *testing.T, file string) []byte {
 
 // createTestDocument creates a document in the teedy API for integration test purposes
 func createTestDocument(t *testing.T, client *teedy.Client) *teedy.Document {
-	doc, err := teedy.NewDocument("test document", "eng")
+	doc := teedy.NewDocument("test document", "eng")
 	d, err := client.Document.Add(doc)
 
 	if err != nil {

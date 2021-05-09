@@ -62,6 +62,22 @@ func (t *TagService) GetAll() ([]*Tag, error) {
 	return resp.Result().(*TagList).Tags, nil
 }
 
+func (t *TagService) GetByName(name string) (*Tag, error) {
+	tags, err := t.GetAll()
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, tag := range tags {
+		if tag.Name == name {
+			return tag, nil
+		}
+	}
+
+	return nil, nil
+}
+
 func (t *TagService) Get(id string) (*Tag, error) {
 	resp, err := t.client.R().
 		SetResult(&Tag{}).
@@ -98,6 +114,10 @@ func (t *TagService) Delete(id string) (*TagDeleteStatus, error) {
 
 	err = checkRequestError(resp, err, t.apiError.Delete)
 
+	if err != nil {
+		return nil, err
+	}
+
 	return resp.Result().(*TagDeleteStatus), nil
 }
 
@@ -112,6 +132,10 @@ func (t *TagService) Update(id string, tag *Tag) (*Tag, error) {
 		Post(fmt.Sprintf("api/tag/%s", id))
 
 	err = checkRequestError(resp, err, t.apiError.Update)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return resp.Result().(*Tag), nil
 }

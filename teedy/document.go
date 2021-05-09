@@ -19,9 +19,9 @@ func NewDocumentService(client *resty.Client, api string) *DocumentService {
 }
 
 type DocumentList struct {
-	Documents   []Document `json:"documents"`
-	Total       int        `json:"total"`
-	Suggestions []string   `json:"suggestions"`
+	Documents   []*Document `json:"documents"`
+	Total       int         `json:"total"`
+	Suggestions []string    `json:"suggestions"`
 }
 
 type ACLs struct {
@@ -89,23 +89,35 @@ type Document struct {
 	RouteStep       *RouteStep       `json:"route_step,omitempty"`
 }
 
+// UpdateTagIDsByName updates the documents tag ID's if the incoming tag matches its name. This is useful
+// when importing backups of documents
+func (d *Document) UpdateTagIDsByName(tags []*Tag) {
+	for _, documentTag := range d.Tags {
+		for _, incomingTag := range tags {
+			if documentTag.Name == incomingTag.Name {
+				documentTag.Id = incomingTag.Id
+			}
+		}
+	}
+}
+
 type DocumentDeleteStatus struct {
 	Status string `json:"Status"`
 }
 
-func NewDocument(title, language string) (*Document, error) {
+func NewDocument(title, language string) *Document {
 	return &Document{
 		Title:    title,
 		Language: language,
-	}, nil
+	}
 }
 
-func (t *DocumentService) GetAll() (*DocumentList, error) {
-	resp, err := t.client.R().
+func (d *DocumentService) GetAll() (*DocumentList, error) {
+	resp, err := d.client.R().
 		SetResult(&DocumentList{}).
 		Get("api/document/list")
 
-	err = checkRequestError(resp, err, t.apiError.GetAll)
+	err = checkRequestError(resp, err, d.apiError.GetAll)
 
 	if err != nil {
 		return nil, err
@@ -114,58 +126,87 @@ func (t *DocumentService) GetAll() (*DocumentList, error) {
 	return resp.Result().(*DocumentList), nil
 }
 
-func (t *DocumentService) Get(id string) (*Document, error) {
-	resp, err := t.client.R().
+func (d *DocumentService) Get(id string) (*Document, error) {
+	resp, err := d.client.R().
 		SetResult(&Document{}).
 		Get(fmt.Sprintf("api/document/%s", id))
 
-	err = checkRequestError(resp, err, t.apiError.Get)
+	err = checkRequestError(resp, err, d.apiError.Get)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return resp.Result().(*Document), nil
 }
 
-func (t *DocumentService) Add(d *Document) (*Document, error) {
-	// builds the form data for creating a document in the teedy api
-	fv := NewFormValues()
-	fv.AddMandatory("title", d.Title)
-	fv.AddMandatory("language", d.Language)
-	fv.AddIfNotEmpty("title", d.Title)
-	fv.AddIfNotEmpty("description", d.Description)
-	fv.AddIfNotEmpty("subject", d.Subject)
-	fv.AddIfNotEmpty("identifier", d.Identifier)
-	fv.AddIfNotEmpty("publisher", d.Publisher)
-	fv.AddIfNotEmpty("format", d.Format)
-	fv.AddIfNotEmpty("source", d.Source)
-	fv.AddIfNotEmpty("type", d.Type)
-	fv.AddIfNotEmpty("coverage", d.Coverage)
-	fv.AddIfNotEmpty("rights", d.Rights)
+func (d *DocumentService) GetByTitle(title string) (*Document, error) {
+	docs, err := d.GetAll()
 
-	for _, tag := range d.Tags {
-		fv.AddIfNotEmpty("tag", tag.Id)
+	if err != nil {
+		return nil, err
 	}
 
-	for _, rel := range d.Relations {
+	for _, doc := range docs.Documents {
+		if doc.Title == title {
+			return doc, nil
+		}
+	}
+
+	return nil, nil
+}
+
+func (d *DocumentService) Add(doc *Document) (*Document, error) {
+	// builds the form data for creating a document in the teedy api
+	fv := NewFormValues()
+	fv.AddMandatory("title", doc.Title)
+	fv.AddMandatory("language", doc.Language)
+	fv.AddIfNotEmpty("title", doc.Title)
+	fv.AddIfNotEmpty("description", doc.Description)
+	fv.AddIfNotEmpty("subject", doc.Subject)
+	fv.AddIfNotEmpty("identifier", doc.Identifier)
+	fv.AddIfNotEmpty("publisher", doc.Publisher)
+	fv.AddIfNotEmpty("format", doc.Format)
+	fv.AddIfNotEmpty("source", doc.Source)
+	fv.AddIfNotEmpty("type", doc.Type)
+	fv.AddIfNotEmpty("coverage", doc.Coverage)
+	fv.AddIfNotEmpty("rights", doc.Rights)
+
+	for _, tag := range doc.Tags {
+		fv.AddIfNotEmpty("tags", tag.Id)
+	}
+
+	for _, rel := range doc.Relations {
 		fv.AddIfNotEmpty("relations", rel.Id)
 	}
 
 	body, err := fv.Result()
 
-	resp, err := t.client.R().
+	resp, err := d.client.R().
 		SetResult(&Document{}).
+		//SetQueryParam("tags", "9c45dacd-7df5-4879-9425-77fbc3efa677").
 		SetFormDataFromValues(body).
 		Put("api/document")
 
-	err = checkRequestError(resp, err, t.apiError.Add)
+	err = checkRequestError(resp, err, d.apiError.Add)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return resp.Result().(*Document), nil
 }
 
-func (t *DocumentService) Delete(id string) (*DocumentDeleteStatus, error) {
-	resp, err := t.client.R().
+func (d *DocumentService) Delete(id string) (*DocumentDeleteStatus, error) {
+	resp, err := d.client.R().
 		SetResult(&DocumentDeleteStatus{}).
 		Delete(fmt.Sprintf("api/document/%s", id))
 
-	err = checkRequestError(resp, err, t.apiError.Delete)
+	err = checkRequestError(resp, err, d.apiError.Delete)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return resp.Result().(*DocumentDeleteStatus), nil
 }

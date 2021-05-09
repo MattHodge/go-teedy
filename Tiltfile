@@ -23,3 +23,9 @@ local_resource("go mod tidy",
   auto_init = False,
   trigger_mode = TRIGGER_MODE_MANUAL,
 )
+
+local_resource("clear + backup",
+  cmd = "rm -rf test-bak/ && go run main.go && tree test-bak/",
+  auto_init = False,
+  trigger_mode = TRIGGER_MODE_MANUAL,
+)

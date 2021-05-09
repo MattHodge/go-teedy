@@ -82,6 +82,10 @@ func (f *FileService) GetData(id string) ([]byte, error) {
 
 	err = checkRequestError(resp, err, f.apiError.Custom("get file data"))
 
+	if err != nil {
+		return nil, err
+	}
+
 	return resp.Body(), nil
 }
 

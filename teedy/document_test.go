@@ -72,9 +72,7 @@ func TestDocumentService_AddDocument_Integration(t *testing.T) {
 
 	client := setup(t)
 
-	doc, err := teedy.NewDocument("test document", "eng")
-
-	require.NotNil(t, doc, "creating a new valid document should not be nil")
+	doc := teedy.NewDocument("test document", "eng")
 
 	createdTag, err := client.Document.Add(doc)
 	require.NoError(t, err, "adding a new document should not cause error")
@@ -102,7 +100,7 @@ func TestDocumentService_AddDocumentWithTag_Integration(t *testing.T) {
 
 	require.NoErrorf(t, err, "adding a tag should not fail")
 
-	doc, err := teedy.NewDocument("test document", "eng")
+	doc := teedy.NewDocument("doc with tag 3", "eng")
 	doc.Tags = []*teedy.Tag{
 		tag1,
 		tag2,
@@ -110,7 +108,63 @@ func TestDocumentService_AddDocumentWithTag_Integration(t *testing.T) {
 
 	require.NotNilf(t, doc, "creating a new valid document should not be nil")
 
-	createdTag, err := client.Document.Add(doc)
+	createdDoc, err := client.Document.Add(doc)
 	require.NoErrorf(t, err, "adding a new document should not cause error")
-	assert.NotNil(t, createdTag.Id, "added document should be returned with an id")
+	assert.NotNil(t, createdDoc.Id, "added document should be returned with an id")
+
+	readCreatedDoc, err := client.Document.Get(createdDoc.Id)
+	require.NoErrorf(t, err, "getting the created document should not cause error")
+
+	assert.Len(t, doc.Tags, len(readCreatedDoc.Tags), "tags on new document should match created doc")
+}
+
+func TestDocumentService_UpdateTagIDsByName(t *testing.T) {
+	document := teedy.NewDocument("foo", "eng")
+
+	oldTags := []*teedy.Tag{
+		{
+			Id:   "aaa",
+			Name: "foo",
+		},
+		{
+			Id:   "bbb",
+			Name: "bar",
+		},
+		{
+			Id:   "ccc",
+			Name: "baz",
+		},
+	}
+
+	document.Tags = oldTags
+
+	newTags := []*teedy.Tag{
+		{
+			Id:   "100",
+			Name: "bar",
+		},
+		{
+			Id:   "200",
+			Name: "foo",
+		},
+	}
+
+	document.UpdateTagIDsByName(newTags)
+
+	want := []*teedy.Tag{
+		{
+			Id:   "200",
+			Name: "foo",
+		},
+		{
+			Id:   "100",
+			Name: "bar",
+		},
+		{
+			Id:   "ccc",
+			Name: "baz",
+		},
+	}
+
+	assert.EqualValues(t, want, document.Tags, "documents tag IDs should have been updated with passed values")
 }

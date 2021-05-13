@@ -69,10 +69,10 @@ func TestDocumentService_GetAll(t *testing.T) {
 
 func TestDocumentService_AddDocument_Integration(t *testing.T) {
 	if testing.Short() {
-		t.Skip(testSkippingIntegrationTest)
+		t.Skip(teedytest.SkippingIntegrationMessage)
 	}
 
-	client := setup(t)
+	client := teedytest.SetupClient(t)
 
 	doc := teedy.NewDocument("test document", "eng")
 
@@ -83,10 +83,10 @@ func TestDocumentService_AddDocument_Integration(t *testing.T) {
 
 func TestDocumentService_AddDocumentWithTag_Integration(t *testing.T) {
 	if testing.Short() {
-		t.Skip(testSkippingIntegrationTest)
+		t.Skip(teedytest.SkippingIntegrationMessage)
 	}
 
-	client := setup(t)
+	client := teedytest.SetupClient(t)
 
 	tag1, err := client.Tag.Add(&teedy.Tag{
 		Name:  "foo",

@@ -56,10 +56,10 @@ func TestTagService_NewTag(t *testing.T) {
 
 func TestTagService_AddTag_Integration(t *testing.T) {
 	if testing.Short() {
-		t.Skip(testSkippingIntegrationTest)
+		t.Skip(teedytest.SkippingIntegrationMessage)
 	}
 
-	client := setup(t)
+	client := teedytest.SetupClient(t)
 
 	tag, err := teedy.NewTag("test", "#fff000", "")
 	require.NotNil(t, tag, "creating a new valid tag should not be nil")
@@ -71,10 +71,10 @@ func TestTagService_AddTag_Integration(t *testing.T) {
 
 func TestTagService_DeleteTag_Integration(t *testing.T) {
 	if testing.Short() {
-		t.Skip(testSkippingIntegrationTest)
+		t.Skip(teedytest.SkippingIntegrationMessage)
 	}
 
-	client := setup(t)
+	client := teedytest.SetupClient(t)
 
 	tag, err := teedy.NewTag("test", "#fff000", "")
 	require.NotNil(t, tag, "creating a new valid tag should not be nil")
@@ -90,7 +90,7 @@ func TestTagService_DeleteTag_Integration(t *testing.T) {
 
 func TestTagService_UpdateTag_Integration(t *testing.T) {
 	if testing.Short() {
-		t.Skip(testSkippingIntegrationTest)
+		t.Skip(teedytest.SkippingIntegrationMessage)
 	}
 
 	const (
@@ -98,7 +98,7 @@ func TestTagService_UpdateTag_Integration(t *testing.T) {
 		updatedTagName  = "biz"
 	)
 
-	client := setup(t)
+	client := teedytest.SetupClient(t)
 
 	tag, err := teedy.NewTag("test", "#fff000", "")
 	require.NotNil(t, tag, "creating a new valid tag should not be nil")

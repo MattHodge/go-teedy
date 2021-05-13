@@ -6,8 +6,27 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/MattHodge/go-teedy/teedy"
+
 	"github.com/jarcoal/httpmock"
 )
+
+const (
+	TeedyUsername              = "admin"
+	TeedyPassword              = "superSecure"
+	SkippingIntegrationMessage = "skipping integration test"
+	TeedyURL                   = "http://localhost:8080"
+)
+
+func SetupClient(t *testing.T) *teedy.Client {
+	client, err := teedy.NewClient(TeedyURL, TeedyUsername, TeedyPassword)
+
+	if err != nil {
+		t.Skipf("skipping test because unable to get a new client")
+	}
+
+	return client
+}
 
 // NewJsonResponder returns a JSON responder for httpmock.
 func NewJsonResponder(s int, c string) httpmock.Responder {

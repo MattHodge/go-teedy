@@ -53,10 +53,10 @@ func TestFileService_Get(t *testing.T) {
 
 func TestFileService_GetAll_Integration(t *testing.T) {
 	if testing.Short() {
-		t.Skip(testSkippingIntegrationTest)
+		t.Skip(teedytest.SkippingIntegrationMessage)
 	}
 
-	client := setup(t)
+	client := teedytest.SetupClient(t)
 
 	_, err := client.File.GetAll()
 
@@ -65,9 +65,9 @@ func TestFileService_GetAll_Integration(t *testing.T) {
 
 func TestFileService_Add_Integration(t *testing.T) {
 	if testing.Short() {
-		t.Skip(testSkippingIntegrationTest)
+		t.Skip(teedytest.SkippingIntegrationMessage)
 	}
-	client := setup(t)
+	client := teedytest.SetupClient(t)
 
 	file := teedytest.LoadFile(t, "testdata/image.png")
 	defer file.Close()
@@ -78,10 +78,10 @@ func TestFileService_Add_Integration(t *testing.T) {
 
 func TestFileService_AddToDocument_Integration(t *testing.T) {
 	if testing.Short() {
-		t.Skip(testSkippingIntegrationTest)
+		t.Skip(teedytest.SkippingIntegrationMessage)
 	}
 
-	client := setup(t)
+	client := teedytest.SetupClient(t)
 
 	doc := createTestDocument(t, client)
 
@@ -100,10 +100,10 @@ func TestFileService_AddToDocument_Integration(t *testing.T) {
 
 func TestFileService_GetData_Integration(t *testing.T) {
 	if testing.Short() {
-		t.Skip(testSkippingIntegrationTest)
+		t.Skip(teedytest.SkippingIntegrationMessage)
 	}
 
-	client := setup(t)
+	client := teedytest.SetupClient(t)
 	doc := createTestDocument(t, client)
 
 	// add file to it
@@ -124,10 +124,10 @@ func TestFileService_GetData_Integration(t *testing.T) {
 
 func TestFileService_GetZippedFiles_Integration(t *testing.T) {
 	if testing.Short() {
-		t.Skip(testSkippingIntegrationTest)
+		t.Skip(teedytest.SkippingIntegrationMessage)
 	}
 
-	client := setup(t)
+	client := teedytest.SetupClient(t)
 	doc := createTestDocument(t, client)
 
 	// add file to it

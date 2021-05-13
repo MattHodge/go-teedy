@@ -31,26 +31,67 @@ func (c *Client) ViewTags() ([]*teedy.Tag, error) {
 
 func (c *Client) Tags() error {
 	// load docs from disk
-	tags, err := c.ViewTags()
+	tagsFromDisk, err := c.ViewTags()
 
 	if err != nil {
-		return fmt.Errorf("cant load tags for restore: %w", err)
+		return fmt.Errorf("cant load tagsFromDisk for restore: %w", err)
 	}
 
-	for _, t := range tags {
-		// check if tag exists
-		existingTag, err := c.client.Tag.GetByName(t.Name)
+	restoredTags := make(map[string]*teedy.Tag)
+	var notRestoredYet []*teedy.Tag
 
-		if existingTag != nil {
-			// delete it incase there are changes.. could be an update
-			_, err := c.client.Tag.Delete(existingTag.Id)
+	for _, tagFromDisk := range tagsFromDisk {
+		err := c.deleteTagIfExistsInDestination(tagFromDisk)
+
+		if err != nil {
+			return err
+		}
+
+		// first restore tags with no parents
+		if tagFromDisk.Parent == "" {
+			restoredTag, err := c.client.Tag.Add(tagFromDisk)
 
 			if err != nil {
 				return err
 			}
+
+			// create a map so we can us the old tag id to find the new tag
+			restoredTags[tagFromDisk.Id] = restoredTag
+		} else {
+			notRestoredYet = append(notRestoredYet, tagFromDisk)
+		}
+	}
+
+	// restore the rest of the tags
+	for _, tagFromDisk := range notRestoredYet {
+		// try find its parent by name
+		if parentTag, ok := restoredTags[tagFromDisk.Parent]; ok {
+			tagFromDisk.Parent = parentTag.Id
 		}
 
-		_, err = c.client.Tag.Add(t)
+		restoredTag, err := c.client.Tag.Add(tagFromDisk)
+
+		if err != nil {
+			return err
+		}
+
+		restoredTags[tagFromDisk.Id] = restoredTag
+	}
+
+	return nil
+}
+
+func (c *Client) deleteTagIfExistsInDestination(t *teedy.Tag) error {
+	// check if tag exists
+	existingTag, err := c.client.Tag.GetByName(t.Name)
+
+	if err != nil {
+		return err
+	}
+
+	if existingTag != nil {
+		// delete it incase there are changes.. could be an update
+		_, err := c.client.Tag.Delete(existingTag.Id)
 
 		if err != nil {
 			return err

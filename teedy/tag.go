@@ -104,7 +104,10 @@ func (t *TagService) Add(tag *Tag) (*Tag, error) {
 		return nil, err
 	}
 
-	return resp.Result().(*Tag), nil
+	returnedTag := resp.Result().(*Tag)
+
+	// return the full tag object instead of just the id
+	return t.Get(returnedTag.Id)
 }
 
 func (t *TagService) Delete(id string) (*TagDeleteStatus, error) {

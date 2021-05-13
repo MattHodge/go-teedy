@@ -3,6 +3,8 @@ package teedy_test
 import (
 	"testing"
 
+	"github.com/MattHodge/go-teedy/teedytest"
+
 	"github.com/jarcoal/httpmock"
 
 	"github.com/MattHodge/go-teedy/teedy"
@@ -55,7 +57,7 @@ func TestDocumentService_GetAll(t *testing.T) {
   "suggestions": []
 }
 `
-	responder := newJsonResponder(200, fixture)
+	responder := teedytest.NewJsonResponder(200, fixture)
 	httpmock.RegisterResponder("GET", "http://fake/api/document/list", responder)
 	client := teedy.NewFakeClient()
 

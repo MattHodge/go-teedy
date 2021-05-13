@@ -4,35 +4,45 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-
-	"github.com/MattHodge/go-teedy/teedy"
 )
 
-type DocumentBackup struct {
-	FullDirectory        string
-	FullDirectoryFiles   string
-	FullPathDocumentJSON string
-	Document             *teedy.Document
+func (b *Client) DocumentBackupJSONFilePath(documentId string) string {
+	return filepath.Join(b.DocumentBackupDirectory(documentId), b.documentJSONFileBaseName)
 }
 
-func (s *DocumentBackup) Save() error {
-	os.MkdirAll(s.FullDirectory, 0700)
-	os.MkdirAll(s.FullDirectoryFiles, 0700)
-	err := dumpJson(s.Document, s.FullPathDocumentJSON)
+func (b *Client) DocumentBackupDirectory(documentId string) string {
+	return filepath.Join(b.rootDocumentBackupDirectory, documentId)
+}
+
+func (b *Client) Documents() error {
+	docs, err := b.client.Document.GetAll()
 
 	if err != nil {
-		return fmt.Errorf("cannot save: %w", err)
+		return fmt.Errorf("cannot get tags: %w", err)
+	}
+
+	for _, doc := range docs.Documents {
+		os.MkdirAll(b.DocumentBackupDirectory(doc.Id), 0700)
+		err := dumpJson(doc, b.DocumentBackupJSONFilePath(doc.Id))
+
+		if err != nil {
+			return fmt.Errorf("cannot save: %w", err)
+		}
+
+		// get files
+		docFiles, err := b.client.File.Get(doc.Id)
+
+		if err != nil {
+			return fmt.Errorf("cannot get files for doc id %s: %w", doc.Id, err)
+		}
+
+		for _, file := range docFiles {
+			err := b.File(file)
+			if err != nil {
+				return fmt.Errorf("cannot save file id %s: %w", file.Id, err)
+			}
+		}
 	}
 
 	return nil
-}
-
-func Document(document *teedy.Document, basePath string) *DocumentBackup {
-	fullDirectory := filepath.Join(basePath, "documents", document.Id)
-	return &DocumentBackup{
-		FullDirectory:        fullDirectory,
-		FullDirectoryFiles:   filepath.Join(fullDirectory, "files"),
-		FullPathDocumentJSON: filepath.Join(fullDirectory, DOCUMENT_BACKUP_FILENAME),
-		Document:             document,
-	}
 }

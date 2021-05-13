@@ -4,31 +4,30 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-
-	"github.com/MattHodge/go-teedy/teedy"
 )
 
-type TagBackup struct {
-	FullDirectory        string
-	FullPathDocumentJSON string
-	Tag                  *teedy.Tag
+func (b *Client) TagBackupJSONFilePath(tagId string) string {
+	return filepath.Join(b.TagBackupDirectory(tagId), b.tagJSONFileBaseName)
 }
 
-func Tag(tag *teedy.Tag, basePath string) *TagBackup {
-	fullDirectory := filepath.Join(basePath, "tags", tag.Id)
-	return &TagBackup{
-		FullDirectory:        fullDirectory,
-		FullPathDocumentJSON: filepath.Join(fullDirectory, TAG_BACKUP_FILENAME),
-		Tag:                  tag,
-	}
+func (b *Client) TagBackupDirectory(tagId string) string {
+	return filepath.Join(b.rootTagBackupDirectory, tagId)
 }
 
-func (t *TagBackup) Save() error {
-	os.MkdirAll(t.FullDirectory, 0700)
-	err := dumpJson(t.Tag, t.FullPathDocumentJSON)
+func (b *Client) Tags() error {
+	tags, err := b.client.Tag.GetAll()
 
 	if err != nil {
-		return fmt.Errorf("cannot save: %w", err)
+		return fmt.Errorf("cannot get tags: %w", err)
+	}
+
+	for _, tag := range tags {
+		os.MkdirAll(b.TagBackupDirectory(tag.Id), 0700)
+		err := dumpJson(tag, b.TagBackupJSONFilePath(tag.Id))
+
+		if err != nil {
+			return fmt.Errorf("cannot save: %w", err)
+		}
 	}
 
 	return nil

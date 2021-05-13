@@ -1,9 +1,9 @@
 package teedy_test
 
 import (
-	"io/ioutil"
-	"os"
 	"testing"
+
+	"github.com/MattHodge/go-teedy/teedytest"
 
 	"github.com/jarcoal/httpmock"
 
@@ -40,7 +40,7 @@ func TestFileService_Get(t *testing.T) {
     ]
 }
 `
-	responder := newJsonResponder(200, fixture)
+	responder := teedytest.NewJsonResponder(200, fixture)
 	httpmock.RegisterResponder("GET", "http://fake/api/file/list?id=1", responder)
 	client := teedy.NewFakeClient()
 
@@ -69,7 +69,7 @@ func TestFileService_Add_Integration(t *testing.T) {
 	}
 	client := setup(t)
 
-	file := loadFile(t, "testdata/image.png")
+	file := teedytest.LoadFile(t, "testdata/image.png")
 	defer file.Close()
 	s, err := client.File.Add("", "", file)
 	require.NoError(t, err)
@@ -85,7 +85,7 @@ func TestFileService_AddToDocument_Integration(t *testing.T) {
 
 	doc := createTestDocument(t, client)
 
-	file := loadFile(t, "testdata/image.png")
+	file := teedytest.LoadFile(t, "testdata/image.png")
 	defer file.Close()
 
 	// test adding the file
@@ -107,7 +107,7 @@ func TestFileService_GetData_Integration(t *testing.T) {
 	doc := createTestDocument(t, client)
 
 	// add file to it
-	file := loadFile(t, "testdata/image.png")
+	file := teedytest.LoadFile(t, "testdata/image.png")
 	defer file.Close()
 	addedFile, err := client.File.Add(doc.Id, "", file)
 	require.NoError(t, err, "should not error adding file")
@@ -118,7 +118,7 @@ func TestFileService_GetData_Integration(t *testing.T) {
 
 	assert.IsType(t, got, []byte{})
 
-	uploadedFileContents := getFileContents(t, "testdata/image.png")
+	uploadedFileContents := teedytest.GetFileContents(t, "testdata/image.png")
 	assert.Equal(t, uploadedFileContents, got, "uploaded and read file should match")
 }
 
@@ -131,7 +131,7 @@ func TestFileService_GetZippedFiles_Integration(t *testing.T) {
 	doc := createTestDocument(t, client)
 
 	// add file to it
-	file := loadFile(t, "testdata/image.png")
+	file := teedytest.LoadFile(t, "testdata/image.png")
 	defer file.Close()
 	_, err := client.File.Add(doc.Id, "", file)
 
@@ -141,25 +141,6 @@ func TestFileService_GetZippedFiles_Integration(t *testing.T) {
 
 	var want []byte
 	assert.IsType(t, got, want)
-}
-
-func loadFile(t *testing.T, path string) *os.File {
-	file, err := os.Open(path)
-	if err != nil {
-		t.Skipf("skipping test because unable unable to open file '%s': %v", path, err)
-	}
-
-	return file
-}
-
-func getFileContents(t *testing.T, file string) []byte {
-	b, err := ioutil.ReadFile(file)
-
-	if err != nil {
-		t.Skipf("skipping test because unable unable to read file: %s", err)
-	}
-
-	return b
 }
 
 // createTestDocument creates a document in the teedy API for integration test purposes

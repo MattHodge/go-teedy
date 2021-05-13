@@ -4,18 +4,29 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
 
 	"github.com/MattHodge/go-teedy/teedy"
 )
 
-const (
-	TAG_BACKUP_FILENAME      = "tag.json"
-	DOCUMENT_BACKUP_FILENAME = "document.json"
-)
+type Client struct {
+	client                      *teedy.Client
+	rootBackupDirectory         string
+	rootTagBackupDirectory      string
+	rootDocumentBackupDirectory string
+	tagJSONFileBaseName         string
+	documentJSONFileBaseName    string
+}
 
-type BackupClient struct {
-	client          *teedy.Client
-	backupDirectory string
+func NewBackupClient(client *teedy.Client, directory string) *Client {
+	return &Client{
+		client:                      client,
+		rootBackupDirectory:         directory,
+		rootTagBackupDirectory:      filepath.Join(directory, "tags"),
+		rootDocumentBackupDirectory: filepath.Join(directory, "documents"),
+		tagJSONFileBaseName:         "tag.json",
+		documentJSONFileBaseName:    "document.json",
+	}
 }
 
 func dumpJson(i interface{}, path string) error {

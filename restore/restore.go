@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 
 	"github.com/1set/gut/yos"
-	"github.com/MattHodge/go-teedy/backup"
 	"github.com/MattHodge/go-teedy/teedy"
 )
 
@@ -71,7 +70,7 @@ func LoadBackupTags(files []*yos.FilePathInfo, filename string) ([]*teedy.Tag, e
 }
 
 func LoadBackupDocuments(directory string) ([]*teedy.Document, error) {
-	files, err := SearchDirectoryForBackupFiles(directory, backup.DOCUMENT_BACKUP_FILENAME)
+	files, err := SearchDirectoryForBackupFiles(directory, "document.json")
 
 	if err != nil {
 		return nil, err

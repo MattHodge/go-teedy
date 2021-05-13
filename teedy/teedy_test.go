@@ -3,8 +3,6 @@ package teedy_test
 import (
 	"testing"
 
-	"github.com/jarcoal/httpmock"
-
 	"github.com/MattHodge/go-teedy/teedy"
 )
 
@@ -23,11 +21,4 @@ func setup(t *testing.T) *teedy.Client {
 	}
 
 	return client
-}
-
-// newJsonResponder returns a JSON responder for httpmock.
-func newJsonResponder(s int, c string) httpmock.Responder {
-	resp := httpmock.NewStringResponse(s, c)
-	resp.Header.Set("Content-Type", "application/json")
-	return httpmock.ResponderFromResponse(resp)
 }

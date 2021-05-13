@@ -9,22 +9,17 @@ import (
 	"github.com/MattHodge/go-teedy/teedy"
 )
 
-type FileBackup struct {
-	FullDirectory string
-	File          *teedy.File
-	client        *teedy.Client
-}
+func (c *Client) File(file *teedy.File) error {
+	fileDirectory := filepath.Join(c.DocumentBackupDirectory(file.DocumentId), "files")
+	os.MkdirAll(fileDirectory, 0700)
 
-func (f *FileBackup) Save() error {
-	os.MkdirAll(f.FullDirectory, 0700)
-
-	fbytes, err := f.client.File.GetData(f.File.Id)
+	fbytes, err := c.client.File.GetData(file.Id)
 
 	if err != nil {
-		return fmt.Errorf("can't get data file with id %s", f.File.Id)
+		return fmt.Errorf("can't get data file with id %s", file.Id)
 	}
 
-	fullFilePath := filepath.Join(f.FullDirectory, f.File.Name)
+	fullFilePath := filepath.Join(fileDirectory, file.Name)
 
 	err = ioutil.WriteFile(fullFilePath, fbytes, 0644)
 
@@ -32,16 +27,5 @@ func (f *FileBackup) Save() error {
 		return fmt.Errorf("can't write file: %w", err)
 	}
 
-	fmt.Printf("File exported succesfully: %s\n", fullFilePath)
-
 	return nil
-}
-
-func File(client *teedy.Client, file *teedy.File, basePath string) *FileBackup {
-	fullDirectory := filepath.Join(basePath, "documents", file.DocumentId, "files")
-	return &FileBackup{
-		FullDirectory: fullDirectory,
-		File:          file,
-		client:        client,
-	}
 }

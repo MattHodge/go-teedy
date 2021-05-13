@@ -4,15 +4,19 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/MattHodge/go-teedy/teedytest"
-
 	"github.com/MattHodge/go-teedy/restore"
+
+	"github.com/MattHodge/go-teedy/teedy"
+	"github.com/MattHodge/go-teedy/teedytest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestLoadBackupDocuments(t *testing.T) {
-	baseDir := t.TempDir()
+func TestDocuments(t *testing.T) {
+	tc := teedy.NewFakeClient()
+	backupDir := t.TempDir()
+	restoreClient := restore.NewRestoreClient(tc, backupDir)
+
 	doc1 := `
 {
     "id": "1",
@@ -43,13 +47,13 @@ func TestLoadBackupDocuments(t *testing.T) {
 }
 `
 
-	teedytest.WriteToFile(t, filepath.Join(baseDir, "documents", "1", "document.json"), doc1)
-	teedytest.WriteToFile(t, filepath.Join(baseDir, "documents", "2", "document.json"), doc2)
+	teedytest.WriteToFile(t, filepath.Join(backupDir, "documents", "1", "document.json"), doc1)
+	teedytest.WriteToFile(t, filepath.Join(backupDir, "documents", "2", "document.json"), doc2)
 
-	docs, err := restore.LoadBackupDocuments(filepath.Join(baseDir, "documents"))
+	docs, err := restoreClient.ViewDocuments()
 
 	require.NoError(t, err)
-	require.Len(t, docs, 2)
+	assert.Len(t, docs, 2)
 	assert.Equal(t, "1", docs[0].Id)
 	assert.Equal(t, "2", docs[1].Id)
 }

@@ -53,7 +53,24 @@ func TestDocuments(t *testing.T) {
 	docs, err := restoreClient.ViewDocuments()
 
 	require.NoError(t, err)
-	assert.Len(t, docs, 2)
+	require.Len(t, docs, 2)
 	assert.Equal(t, "1", docs[0].Id)
 	assert.Equal(t, "2", docs[1].Id)
+}
+
+func TestClient_ViewDocumentFiles(t *testing.T) {
+	tc := teedy.NewFakeClient()
+	backupDir := t.TempDir()
+	restoreClient := restore.NewRestoreClient(tc, backupDir)
+
+	// write empty files
+	teedytest.WriteToFile(t, filepath.Join(backupDir, "documents", "1", "files", "fake.pdf"), "")
+	teedytest.WriteToFile(t, filepath.Join(backupDir, "documents", "1", "files", "fake2.pdf"), "")
+
+	docs, err := restoreClient.ViewDocumentFiles("1")
+
+	require.NoError(t, err)
+	require.Len(t, docs, 2)
+	assert.Equal(t, "fake.pdf", docs[0].Info.Name())
+	assert.Equal(t, "fake2.pdf", docs[1].Info.Name())
 }

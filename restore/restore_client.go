@@ -17,6 +17,7 @@ type Client struct {
 	rootDocumentBackupDirectory string
 	tagJSONFileBaseName         string
 	documentJSONFileBaseName    string
+	documentAttachmentDirectory string
 }
 
 func NewRestoreClient(client *teedy.Client, directory string) *Client {
@@ -27,6 +28,7 @@ func NewRestoreClient(client *teedy.Client, directory string) *Client {
 		rootDocumentBackupDirectory: filepath.Join(directory, "documents"),
 		tagJSONFileBaseName:         "tag.json",
 		documentJSONFileBaseName:    "document.json",
+		documentAttachmentDirectory: "files",
 	}
 }
 

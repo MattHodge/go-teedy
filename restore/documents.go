@@ -2,9 +2,24 @@ package restore
 
 import (
 	"fmt"
+	"path/filepath"
+
+	"github.com/1set/gut/yos"
 
 	"github.com/MattHodge/go-teedy/teedy"
 )
+
+// ViewDocumentFiles returns any attachments for a specific document
+func (c *Client) ViewDocumentFiles(documentId string) ([]*yos.FilePathInfo, error) {
+	fileAttachmentPath := filepath.Join(c.rootDocumentBackupDirectory, documentId, c.documentAttachmentDirectory)
+
+	if yos.Exist(fileAttachmentPath) {
+		return yos.ListFile(fileAttachmentPath)
+	}
+
+	// having no files directory is not an error, as some documents do not have files attached
+	return nil, nil
+}
 
 func (c *Client) ViewDocuments() ([]*teedy.Document, error) {
 	files, err := searchDirectoryForFiles(c.rootDocumentBackupDirectory, c.documentJSONFileBaseName)

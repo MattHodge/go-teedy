@@ -59,11 +59,11 @@ func (f *FileService) GetAll() ([]*File, error) {
 	return resp.Result().(*FileList).Files, nil
 }
 
-func (f *FileService) Get(id string) ([]*File, error) {
+func (f *FileService) Get(documentId string) ([]*File, error) {
 	resp, err := f.client.R().
 		SetResult(&FileList{}).
 		SetQueryParams(map[string]string{
-			"id": id,
+			"id": documentId,
 		}).
 		Get("api/file/list")
 

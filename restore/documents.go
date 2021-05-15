@@ -2,6 +2,7 @@ package restore
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/1set/gut/yos"
@@ -44,19 +45,23 @@ func (c *Client) ViewDocuments() ([]*teedy.Document, error) {
 	return res, nil
 }
 
-func (c *Client) Documents() error {
+func (c *Client) Documents() (*Status, error) {
 	// load docs from disk
 	docs, err := c.ViewDocuments()
 
 	if err != nil {
-		return fmt.Errorf("cant load docs for restore: %w", err)
+		return nil, fmt.Errorf("cant load docs for restore: %w", err)
 	}
 
 	// load all the tags before restoring documents
 	tags, err := c.client.Tag.GetAll()
 
 	if err != nil {
-		return fmt.Errorf("cant load tags for restore: %w", err)
+		return nil, fmt.Errorf("cant load tags for restore: %w", err)
+	}
+
+	rs := &Status{
+		Documents: nil,
 	}
 
 	for _, d := range docs {
@@ -68,18 +73,46 @@ func (c *Client) Documents() error {
 			_, err := c.client.Document.Delete(existingDoc.Id)
 
 			if err != nil {
-				return fmt.Errorf("deleting existing document '%s' before storing failed: %w", d.Title, err)
+				return nil, fmt.Errorf("deleting existing document '%s' before storing failed: %w", d.Title, err)
 			}
 		}
 
 		d.UpdateTagIDsByName(tags)
 
-		_, err = c.client.Document.Add(d)
+		addedDocument, err := c.client.Document.Add(d)
 
 		if err != nil {
-			return fmt.Errorf("cannot restore document %s: %w", d.Title, err)
+			return nil, fmt.Errorf("cannot restore document '%s': %w", d.Title, err)
+		}
+
+		rs.Documents = append(rs.Documents, &DocumentRestoreStatus{
+			Title: d.Title,
+			OldId: d.Id,
+			Id:    addedDocument.Id,
+		})
+
+		// load any files attached do the document
+		attachments, err := c.ViewDocumentFiles(d.Id)
+
+		// don't error if can't load any attachments
+		if err != nil {
+			continue
+		}
+
+		for _, attachment := range attachments {
+			file, err := os.Open(attachment.Path)
+
+			if err != nil {
+				continue
+			}
+
+			_, err = c.client.File.Add(addedDocument.Id, "", file)
+
+			if err != nil {
+				fmt.Printf("Unable to upload attachment %s: %v\n", attachment.Path, err)
+			}
 		}
 	}
 
-	return nil
+	return rs, nil
 }

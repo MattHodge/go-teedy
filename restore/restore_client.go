@@ -32,6 +32,16 @@ func NewRestoreClient(client *teedy.Client, directory string) *Client {
 	}
 }
 
+type DocumentRestoreStatus struct {
+	Title string
+	Id    string
+	OldId string
+}
+
+type Status struct {
+	Documents []*DocumentRestoreStatus
+}
+
 // searchDirectoryForFiles searches a directory and its subdirectories for files with a specific name
 func searchDirectoryForFiles(directory, filename string) ([]*yos.FilePathInfo, error) {
 	dirs, err := yos.ListDir(directory)

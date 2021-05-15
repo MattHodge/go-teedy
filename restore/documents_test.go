@@ -89,14 +89,7 @@ func TestRestoreDocumentWithFileAttachments(t *testing.T) {
     "id": "1",
     "file_id": "3e9ea4c9-e34b-4ec7-a2dc-083bd669f52f",
     "title": "foo",
-	"language": "eng",
-    "tags": [
-        {
-            "id": "bcd8e09b-84bc-4926-afce-222b7c21d8eb",
-            "name": "tax_2020",
-            "color": "#3a87ad"
-        }
-    ]
+	"language": "eng"
 }
 `
 

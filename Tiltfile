@@ -24,8 +24,18 @@ local_resource("go mod tidy",
   trigger_mode = TRIGGER_MODE_MANUAL,
 )
 
-local_resource("clear + backup",
-  cmd = "rm -rf test-bak/ && go run main.go && tree test-bak/",
+local_resource("teedy-cli backup",
+  cmd = "source .env_backup && rm -rf backup_test/ && go run cmd/teedy-cli/main.go backup --url 'https://teedy.hdgbo.xyz' --destinationpath './backup_test' && tree backup_test/",
   auto_init = False,
   trigger_mode = TRIGGER_MODE_MANUAL,
+)
+
+local_resource("teedy-cli restore",
+  cmd = "go run cmd/teedy-cli/main.go restore --url 'http://localhost:8080' --sourcepath './backup_test'",
+  auto_init = False,
+  trigger_mode = TRIGGER_MODE_MANUAL,
+  env = {
+    "TEEDY_USERNAME": "admin",
+    "TEEDY_PASSWORD": "superSecure"
+  },
 )

@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/1set/gut v0.0.0-20201117175203-a82363231997
+	github.com/alexflint/go-arg v1.4.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-resty/resty/v2 v2.6.0
 	github.com/jarcoal/httpmock v1.0.8

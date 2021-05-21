@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/url"
-	"os"
 
 	"github.com/MattHodge/go-teedy/backup"
 	"github.com/MattHodge/go-teedy/restore"
@@ -36,8 +35,8 @@ func main() {
 
 	// validate params
 	CheckURL(args.URL)
-	username := GetEnvMustExist("TEEDY_USERNAME")
-	password := GetEnvMustExist("TEEDY_PASSWORD")
+	username := teedy.GetEnvMustExist("TEEDY_USERNAME")
+	password := teedy.GetEnvMustExist("TEEDY_PASSWORD")
 
 	client, err := teedy.NewClient(args.URL, username, password)
 
@@ -77,16 +76,6 @@ func main() {
 			log.Fatalf("unable to restore docs: %v", err)
 		}
 	}
-}
-
-func GetEnvMustExist(key string) string {
-	envvar := os.Getenv(key)
-
-	if envvar == "" {
-		log.Fatalf("Unable to load value for '%s' from environment.", key)
-	}
-
-	return envvar
 }
 
 func CheckURL(uri string) {

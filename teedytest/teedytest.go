@@ -13,16 +13,21 @@ import (
 
 const (
 	TeedyUsername              = "admin"
-	TeedyPassword              = "superSecure"
+	TeedyPassword              = "admin"
 	SkippingIntegrationMessage = "skipping integration test"
-	TeedyURL                   = "http://localhost:8080"
 )
 
 func SetupClient(t *testing.T) *teedy.Client {
-	client, err := teedy.NewClient(TeedyURL, TeedyUsername, TeedyPassword)
+	teedyUrl := os.Getenv("TEEDY_URL")
+
+	if teedyUrl == "" {
+		t.Fatalf("cannot run test because TEEDY_URL environment variable not set")
+	}
+
+	client, err := teedy.NewClient(teedyUrl, TeedyUsername, TeedyPassword)
 
 	if err != nil {
-		t.Skipf("skipping test because unable to get a new client")
+		t.Fatalf("cannot run test because unable to get a new client: %v", err)
 	}
 
 	return client

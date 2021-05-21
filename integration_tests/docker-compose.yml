@@ -10,5 +10,4 @@ services:
       # Base url to be used
       DOCS_BASE_URL: "https://localhost"
       DOCS_ADMIN_EMAIL_INIT: "admin@example.com"
-      # admin password ("superSecure")
-      DOCS_ADMIN_PASSWORD_INIT: "$$2a$$05$$PcMNUbJvsk7QHFSfEIDaIOjk1VI9/E7IPjTKx.jkjPxkx2EOKSoPS"
+      # credentials: admin/admin

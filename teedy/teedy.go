@@ -2,7 +2,9 @@ package teedy
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/jarcoal/httpmock"
@@ -65,4 +67,14 @@ func NewFakeClient() *Client {
 		Document: NewDocumentService(client, "document"),
 		File:     NewFileService(client, "file"),
 	}
+}
+
+func GetEnvMustExist(key string) string {
+	envvar := os.Getenv(key)
+
+	if envvar == "" {
+		log.Fatalf("Unable to load value for '%s' from environment.", key)
+	}
+
+	return envvar
 }

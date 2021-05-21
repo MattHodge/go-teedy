@@ -4,12 +4,18 @@ local_resource("🔁 tests",
   cmd = "go test -v ./... -count=1",
   auto_init = False,
   trigger_mode = TRIGGER_MODE_MANUAL,
+  env = {
+    "TEEDY_URL": "http://localhost:8080"
+  }
 )
 
 local_resource("🔁 tests short",
   cmd = "go test -v ./...",
   auto_init = False,
   trigger_mode = TRIGGER_MODE_MANUAL,
+  env = {
+    "TEEDY_URL": "http://localhost:8080"
+  }
 )
 
 local_resource("nuke integration env",

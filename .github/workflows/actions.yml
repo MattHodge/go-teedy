@@ -1,0 +1,27 @@
+on: 
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      teedy:
+        image: sismics/docs:latest
+        ports:
+          # Map internal port to host
+          - 8080:8080
+        env:
+          # Base url to be used
+          DOCS_BASE_URL: "http://localhost"
+          DOCS_ADMIN_EMAIL_INIT: "admin@example.com"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '^1.16.4'
+      - run: go test -v ./... -count=1
+        env:
+          TEEDY_URL: "http://localhost:8080"

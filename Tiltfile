@@ -25,7 +25,7 @@ local_resource("go mod tidy",
 )
 
 local_resource("teedy-cli backup",
-  cmd = "source .env_backup && rm -rf backup_test/ && go run cmd/teedy-cli/main.go backup --url 'https://teedy.hdgbo.xyz' --destinationpath './backup_test' && tree backup_test/",
+  cmd = "source .env_backup && rm -rf backup_test/ && go run cmd/teedy-cli/main.go backup --url 'http://localhost:8080' --destinationpath './backup_test' && tree backup_test/",
   auto_init = False,
   trigger_mode = TRIGGER_MODE_MANUAL,
 )

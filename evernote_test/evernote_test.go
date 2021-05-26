@@ -10,6 +10,10 @@ import (
 )
 
 func TestImport(t *testing.T) {
+	if testing.Short() {
+		t.Skip(teedytest.SkippingIntegrationMessage)
+	}
+
 	client := teedytest.SetupClient(t)
 	ec := evernote.NewImportClient("testdata/test.enex", client)
 	res, err := ec.Import()

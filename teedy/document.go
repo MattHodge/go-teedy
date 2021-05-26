@@ -64,8 +64,8 @@ type Document struct {
 	FileID          string           `json:"file_id,omitempty"`
 	Title           string           `json:"title"`
 	Description     string           `json:"description,omitempty"`
-	CreateDate      *Time            `json:"create_date,omitempty"`
-	UpdateDate      *Time            `json:"update_date,omitempty"`
+	CreateDate      *Timestamp       `json:"create_date,omitempty"`
+	UpdateDate      *Timestamp       `json:"update_date,omitempty"`
 	Language        string           `json:"language"`
 	Shared          bool             `json:"shared,omitempty"`
 	ActiveRoute     bool             `json:"active_route,omitempty"`
@@ -172,6 +172,10 @@ func (d *DocumentService) Add(doc *Document) (*Document, error) {
 	fv.AddIfNotEmpty("coverage", doc.Coverage)
 	fv.AddIfNotEmpty("rights", doc.Rights)
 
+	if doc.CreateDate != nil {
+		fv.AddIfNotEmpty("create_date", doc.CreateDate.Marshal())
+	}
+
 	for _, tag := range doc.Tags {
 		fv.AddIfNotEmpty("tags", tag.Id)
 	}
@@ -184,7 +188,6 @@ func (d *DocumentService) Add(doc *Document) (*Document, error) {
 
 	resp, err := d.client.R().
 		SetResult(&Document{}).
-		//SetQueryParam("tags", "9c45dacd-7df5-4879-9425-77fbc3efa677").
 		SetFormDataFromValues(body).
 		Put("api/document")
 

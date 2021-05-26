@@ -2,6 +2,7 @@ package teedy
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/go-resty/resty/v2"
@@ -20,14 +21,14 @@ func NewFileService(client *resty.Client, api string) *FileService {
 }
 
 type File struct {
-	Id         string `json:"id"`
-	Processing bool   `json:"processing"`
-	Name       string `json:"name"`
-	Version    int    `json:"version"`
-	MimeType   string `json:"mimetype"`
-	DocumentId string `json:"document_id"`
-	CreateDate *Time  `json:"create_date,omitempty"`
-	Size       int    `json:"size"`
+	Id         string     `json:"id"`
+	Processing bool       `json:"processing"`
+	Name       string     `json:"name"`
+	Version    int        `json:"version"`
+	MimeType   string     `json:"mimetype"`
+	DocumentId string     `json:"document_id"`
+	CreateDate *Timestamp `json:"create_date,omitempty"`
+	Size       int        `json:"size"`
 }
 
 type FileList struct {
@@ -89,11 +90,11 @@ func (f *FileService) GetData(id string) ([]byte, error) {
 	return resp.Body(), nil
 }
 
-func (f *FileService) Add(id, previousFileId string, file *os.File) (*FileAddStatus, error) {
+func (f *FileService) Add(documentId, previousFileId string, file *os.File) (*FileAddStatus, error) {
 	params := make(map[string]string)
 
-	if len(id) > 0 {
-		params["id"] = id
+	if len(documentId) > 0 {
+		params["id"] = documentId
 	}
 
 	if len(previousFileId) > 0 {
@@ -110,6 +111,32 @@ func (f *FileService) Add(id, previousFileId string, file *os.File) (*FileAddSta
 		SetResult(&FileAddStatus{}).
 		SetFormData(params).
 		SetFileReader("file", fileInfo.Name(), file).
+		Put("api/file")
+
+	err = checkRequestError(resp, err, f.apiError.Add)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Result().(*FileAddStatus), nil
+}
+
+func (f *FileService) AddReader(documentId, previousFileId, fileName, contentType string, reader io.Reader) (*FileAddStatus, error) {
+	params := make(map[string]string)
+
+	if len(documentId) > 0 {
+		params["id"] = documentId
+	}
+
+	if len(previousFileId) > 0 {
+		params["previousFileId"] = previousFileId
+	}
+
+	resp, err := f.client.R().
+		SetResult(&FileAddStatus{}).
+		SetFormData(params).
+		SetMultipartField("file", fileName, contentType, reader).
 		Put("api/file")
 
 	err = checkRequestError(resp, err, f.apiError.Add)

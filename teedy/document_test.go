@@ -2,6 +2,7 @@ package teedy_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/MattHodge/go-teedy/teedytest"
 
@@ -64,7 +65,8 @@ func TestDocumentService_GetAll(t *testing.T) {
 	docs, err := client.Document.GetAll()
 	require.NoError(t, err, "getting documents should not error")
 	require.Len(t, docs.Documents, 2)
-	assert.Equal(t, docs.Documents[0].CreateDate.String(), "2021-03-15 23:00:00 +0000 UTC", "timestamp should exist")
+	expected := teedy.Timestamp{Time: time.Date(2021, 3, 15, 23, 00, 00, 00, time.UTC)}
+	assert.Equal(t, expected.String(), docs.Documents[0].CreateDate.String(), "timestamp does not match expected")
 }
 
 func TestDocumentService_AddDocument_Integration(t *testing.T) {

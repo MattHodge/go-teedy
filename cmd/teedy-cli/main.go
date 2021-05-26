@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/url"
 
+	"github.com/MattHodge/go-teedy/evernote"
+
 	"github.com/MattHodge/go-teedy/backup"
 	"github.com/MattHodge/go-teedy/restore"
 	"github.com/MattHodge/go-teedy/teedy"
@@ -19,10 +21,15 @@ type RestoreCmd struct {
 	SourcePath string `arg:"-s,required" placeholder:"SRC" help:"Path to restore from"`
 }
 
+type EvernoteCmd struct {
+	SourceEnex string `args:"-e,required" placeholder:"ENEXFILE" help:"Path to evernote exported .enex file"`
+}
+
 type args struct {
-	Backup  *BackupCmd  `arg:"subcommand:backup"`
-	Restore *RestoreCmd `arg:"subcommand:restore"`
-	URL     string      `arg:"-u,required" help:"Teedy Server URL"`
+	Backup   *BackupCmd   `arg:"subcommand:backup"`
+	Restore  *RestoreCmd  `arg:"subcommand:restore"`
+	Evernote *EvernoteCmd `arg:"subcommand:evernote"`
+	URL      string       `arg:"-u,required" help:"Teedy Server URL"`
 }
 
 func (a *args) Description() string {
@@ -74,6 +81,16 @@ func main() {
 
 		if err != nil {
 			log.Fatalf("unable to restore docs: %v", err)
+		}
+	case args.Evernote != nil:
+		fmt.Printf("Running import of Evernote file '%s' to '%s'\n", args.Evernote.SourceEnex, args.URL)
+
+		evClient := evernote.NewImportClient(args.Evernote.SourceEnex, client)
+
+		_, err := evClient.Import()
+
+		if err != nil {
+			log.Fatalf("unable to import from evernote enex: %v", err)
 		}
 	}
 }

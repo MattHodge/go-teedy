@@ -21,17 +21,38 @@ import (
 var reFileAndExt = regexp.MustCompile(`(.*)(\.[\w\d]+)`)
 
 type ImportClient struct {
-	client *teedy.Client
-	source string
+	client   *teedy.Client
+	source   string
+	tagId    []string
+	language string
 }
 
-// TODO: allow configuring document language
-// TODO: allow adding additional tags
-func NewImportClient(enexFile string, client *teedy.Client) *ImportClient {
-	return &ImportClient{
-		client: client,
-		source: enexFile,
+type ImportClientOption func(*ImportClient)
+
+func WithTagID(tagId string) ImportClientOption {
+	return func(ic *ImportClient) {
+		ic.tagId = append(ic.tagId, tagId)
 	}
+}
+
+func WithLanguage(language string) ImportClientOption {
+	return func(ic *ImportClient) {
+		ic.language = language
+	}
+}
+
+func NewImportClient(enexFile string, client *teedy.Client, opts ...ImportClientOption) *ImportClient {
+	ic := &ImportClient{
+		client:   client,
+		source:   enexFile,
+		language: "eng",
+	}
+
+	for _, opt := range opts {
+		opt(ic)
+	}
+
+	return ic
 }
 
 func (ic *ImportClient) Import() ([]*teedy.Document, error) {
@@ -44,8 +65,13 @@ func (ic *ImportClient) Import() ([]*teedy.Document, error) {
 	var retDocuments []*teedy.Document
 
 	for _, note := range export.Notes {
-		doc := teedy.NewDocument(note.Title, "eng")
+		doc := teedy.NewDocument(note.Title, ic.language)
 		doc.Description = string(note.Content)
+
+		// add any tags
+		for _, tagId := range ic.tagId {
+			doc.Tags = append(doc.Tags, &teedy.Tag{Id: tagId})
+		}
 
 		convertedTime, err := convertDate(note.Created)
 

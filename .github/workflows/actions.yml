@@ -22,6 +22,8 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: '^1.16.4'
-      - run: go test -v ./... -count=1
+      - run: go test -v ./... -count=1 -race -covermode=atomic -coverprofile=coverage.out
         env:
           TEEDY_URL: "http://localhost:8080"
+      - run: bash codecov_bash_uploader.sh # downloaded from
+        name: upload coverage to codecov

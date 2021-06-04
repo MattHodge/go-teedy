@@ -19,6 +19,8 @@ jobs:
           DOCS_ADMIN_EMAIL_INIT: "admin@example.com"
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - uses: actions/setup-go@v2
         with:
           go-version: '^1.16.4'
@@ -27,3 +29,13 @@ jobs:
           TEEDY_URL: "http://localhost:8080"
       - run: bash codecov_bash_uploader.sh # downloaded from
         name: upload coverage to codecov
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --rm-dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -45,3 +45,9 @@ local_resource("teedy-cli restore",
     "TEEDY_PASSWORD": "superSecure"
   },
 )
+
+local_resource("go releaser test",
+  cmd = "./ci/goreleaser_darwin_x86_64 --snapshot --skip-publish --rm-dist",
+  auto_init = False,
+  trigger_mode = TRIGGER_MODE_MANUAL,
+)

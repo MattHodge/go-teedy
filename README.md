@@ -2,17 +2,15 @@
 
 <a href="https://github.com/MattHodge/go-teedy/releases" target="_blank">![GitHub release (latest by date)](https://img.shields.io/github/v/release/MattHodge/go-teedy?label=VERSION&style=for-the-badge)</a> <a href="https://pkg.go.dev/github.com/MattHodge/go-teedy?tab=doc" target="_blank"><img src="https://img.shields.io/badge/Go-Reference-00ADD8?style=for-the-badge&logo=go" alt="go reference" /></a> ![GitHub](https://img.shields.io/github/license/MattHodge/go-teedy?style=for-the-badge) <a href="https://app.codecov.io/gh/MattHodge/go-teedy/branch/main" target="_blank">![Codecov branch](https://img.shields.io/codecov/c/github/MattHodge/go-teedy/main?logo=codecov&style=for-the-badge)</a> <a href="https://www.twitter.com/MattHodge" target="_blank">![Twitter Follow](https://img.shields.io/twitter/follow/MattHodge?label=%40MattHodge&logo=twitter&style=for-the-badge)</a>
 
-## Description
-
 This repository contains:
 
-* `go-teedy` is a Go client library for accessing the API of [Teedy](https://github.com/sismics/docs). You can read the [Go package docs](https://pkg.go.dev/github.com/MattHodge/go-teedy) for more information on library usage.
+* **go-teedy**, a Go client library for accessing the API of [Teedy](https://github.com/sismics/docs). Read the [package docs](https://pkg.go.dev/github.com/MattHodge/go-teedy) for library usage.
 
-* `teedy-cli` which provides a command line tool to backup, restore and import Evernote's [enex files](https://evernote.com/blog/how-evernotes-xml-export-format-works/).
+* **teedy-cli**, a command line tool to backup, restore and import Evernote [enex files](https://evernote.com/blog/how-evernotes-xml-export-format-works/) into [Teedy](https://github.com/sismics/docs).
 
-## teedy-cli
+## ⭐️ teedy-cli
 
-### Installation
+### ⚡️ Installation
 
 * Download `teedy-cli` for your system from the [releases page](https://github.com/MattHodge/go-teedy/releases)
 * Extract the `tar` to the location of your choosing

@@ -14,6 +14,11 @@ import (
 	"github.com/alexflint/go-arg"
 )
 
+// values are replaced by go releaser
+var version = "development"
+var commit = "none"
+var date = "none"
+
 type BackupCmd struct {
 	DestinationPath string `arg:"-d,required" placeholder:"DST" help:"Path to backup to"`
 }
@@ -37,6 +42,10 @@ type args struct {
 
 func (a *args) Description() string {
 	return "teedy-cli allows you to backup from and restore to a https://teedy.io/ server.\n"
+}
+
+func (a *args) Version() string {
+	return fmt.Sprintf("Version: %s\nCommit: %s\nDate: %s\n	", version, commit, date)
 }
 
 func main() {

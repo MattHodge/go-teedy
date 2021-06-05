@@ -12,8 +12,8 @@ This repository contains:
 
 ### ⚡️ Installation
 
-* Download `teedy-cli` for your system from the [releases page](https://github.com/MattHodge/go-teedy/releases)
-* Extract the `tar` to the location of your choosing
+* Download `teedy-cli` for your system from the [releases page](https://github.com/MattHodge/go-teedy/releases).
+* Extract the binary the location of your choosing.
 
 ### ⚙️ Commands
 
@@ -60,5 +60,5 @@ Import an Evernote `.enex` file into Teedy.
 export TEEDY_USERNAME=user
 export TEEDY_PASSWORD=password
 
-./teedy-cli evernote --url http://localhost:8080 --source-enex source.enex
+teedy-cli evernote --url http://localhost:8080 --source-enex source.enex
 ```

@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/MattHodge/go-teedy/teedy"
-
+	"github.com/asaskevich/govalidator"
 	"github.com/wormi4ok/evernote2md/encoding/enex"
 	"github.com/wormi4ok/evernote2md/file"
 )
@@ -161,6 +161,10 @@ func fileName(r enex.Resource) string {
 
 	// Return sanitized filename
 	fileName := file.BaseName(ff[len(ff)-2])
+
+	// further sanitize
+	fileName = govalidator.SafeFileName(fileName)
+
 	extension := ff[len(ff)-1]
 	return fmt.Sprintf("%s%s", fileName, extension)
 }

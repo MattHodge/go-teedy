@@ -33,11 +33,16 @@ type EvernoteCmd struct {
 	Language   string   `arg:"-l" placeholder:"LANGUAGE" default:"eng"`
 }
 
+type DeleteDocumentsForTag struct {
+	TagId []string `arg:"-t,required" placeholder:"TAGID" help:"A tag ID which all documents will be deleted for"`
+}
+
 type args struct {
-	Backup   *BackupCmd   `arg:"subcommand:backup"`
-	Restore  *RestoreCmd  `arg:"subcommand:restore"`
-	Evernote *EvernoteCmd `arg:"subcommand:evernote"`
-	URL      string       `arg:"-u,required" help:"Teedy Server URL"`
+	Backup                *BackupCmd             `arg:"subcommand:backup"`
+	Restore               *RestoreCmd            `arg:"subcommand:restore"`
+	Evernote              *EvernoteCmd           `arg:"subcommand:evernote"`
+	DeleteDocumentsForTag *DeleteDocumentsForTag `arg:"subcommand:deletedocsfortag"`
+	URL                   string                 `arg:"-u,required" help:"Teedy Server URL"`
 }
 
 func (a *args) Description() string {
@@ -118,6 +123,30 @@ func main() {
 		if err != nil {
 			log.Fatalf("unable to import from evernote enex: %v", err)
 		}
+	case args.DeleteDocumentsForTag != nil:
+		fmt.Printf("Running Delete Document For Tag\n")
+
+		var allDocs []*teedy.Document
+
+		for _, tagid := range args.DeleteDocumentsForTag.TagId {
+			docs, err := client.Document.GetByTagId(tagid)
+
+			if err != nil {
+				log.Fatalf("unable to import from evernote enex: %v", err)
+			}
+
+			allDocs = append(docs)
+		}
+
+		for _, d := range allDocs {
+			fmt.Printf("Deleting %s (%s)\n", d.Title, d.Id)
+			_, err := client.Document.Delete(d.Id)
+
+			if err != nil {
+				log.Fatalf("unable to delete: %v", err)
+			}
+		}
+
 	}
 }
 

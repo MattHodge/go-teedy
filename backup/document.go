@@ -21,7 +21,7 @@ func (b *Client) Documents() error {
 		return fmt.Errorf("cannot get tags: %w", err)
 	}
 
-	for _, doc := range docs.Documents {
+	for _, doc := range docs {
 		os.MkdirAll(b.DocumentBackupDirectory(doc.Id), 0700)
 		err := dumpJson(doc, b.DocumentBackupJSONFilePath(doc.Id))
 

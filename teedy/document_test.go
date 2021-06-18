@@ -64,9 +64,53 @@ func TestDocumentService_GetAll(t *testing.T) {
 
 	docs, err := client.Document.GetAll()
 	require.NoError(t, err, "getting documents should not error")
-	require.Len(t, docs.Documents, 2)
+	require.Len(t, docs, 2)
 	expected := teedy.Timestamp{Time: time.Date(2021, 3, 15, 23, 00, 00, 00, time.UTC)}
-	assert.Equal(t, expected.String(), docs.Documents[0].CreateDate.String(), "timestamp does not match expected")
+	assert.Equal(t, expected.String(), docs[0].CreateDate.String(), "timestamp does not match expected")
+}
+
+func TestDocumentService_GetByTag(t *testing.T) {
+	fixture := `
+{
+  "total": 2,
+  "documents": [
+    {
+      "id": "1",
+      "title": "Insurance",
+      "tags": [
+        {
+          "id": "bcd8e09b-84bc-4926-afce-222b7c21d8eb",
+          "name": "baz",
+          "color": "#3a87ad"
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "title": "Baz",
+      "tags": [
+        {
+          "id": "bcd8e09b-84bc-4926-afce-222b7c21d8eb",
+          "name": "baz",
+          "color": "#3a87ad"
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "title": "Blinds"
+    }
+  ],
+  "suggestions": []
+}
+`
+	responder := teedytest.NewJsonResponder(200, fixture)
+	httpmock.RegisterResponder("GET", "http://fake/api/document/list", responder)
+	client := teedy.NewFakeClient()
+
+	docs, err := client.Document.GetByTagId("bcd8e09b-84bc-4926-afce-222b7c21d8eb")
+	require.NoError(t, err, "getting documents by tag should not error")
+	require.Len(t, docs, 2)
 }
 
 func TestDocumentService_AddDocument_Integration(t *testing.T) {

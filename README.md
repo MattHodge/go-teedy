@@ -49,6 +49,18 @@ export TEEDY_PASSWORD=password
 teedy-cli restore --url http://destination.teedy.local:8080 --sourcepath ./backup
 ```
 
+#### `deletedocsfortag`
+
+Deletes all documents with a specific Tag ID.
+
+```bash
+# Provide username and password via environment variables
+export TEEDY_USERNAME=user
+export TEEDY_PASSWORD=password
+
+teedy-cli deletedocsfortag --url http://teedy.local:8080 --tagid f3472d4e-ed47-414c-ad7a-be65ab54d107
+```
+
 #### `evernote`
 
 Import an Evernote `.enex` file into Teedy.

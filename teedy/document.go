@@ -2,6 +2,7 @@ package teedy
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/go-resty/resty/v2"
 )
@@ -112,18 +113,32 @@ func NewDocument(title, language string) *Document {
 	}
 }
 
-func (d *DocumentService) GetAll() (*DocumentList, error) {
-	resp, err := d.client.R().
-		SetResult(&DocumentList{}).
-		Get("api/document/list")
+func (d *DocumentService) GetAll() ([]*Document, error) {
+	const PAGINATION_LIMIT = 10
+	var docsToReturn []*Document
 
-	err = checkRequestError(resp, err, d.apiError.GetAll)
+	for {
+		resp, err := d.client.R().
+			SetResult(&DocumentList{}).
+			SetQueryParam("limit", strconv.Itoa(PAGINATION_LIMIT)).
+			SetQueryParam("offset", strconv.Itoa(len(docsToReturn))). // offset at the amount of docs read
+			Get("api/document/list")
 
-	if err != nil {
-		return nil, err
+		err = checkRequestError(resp, err, d.apiError.GetAll)
+
+		if err != nil {
+			return nil, err
+		}
+
+		docList := resp.Result().(*DocumentList)
+		docsToReturn = append(docsToReturn, docList.Documents...)
+
+		if len(docList.Documents) < PAGINATION_LIMIT {
+			break
+		}
 	}
 
-	return resp.Result().(*DocumentList), nil
+	return docsToReturn, nil
 }
 
 func (d *DocumentService) Get(id string) (*Document, error) {
@@ -147,13 +162,32 @@ func (d *DocumentService) GetByTitle(title string) (*Document, error) {
 		return nil, err
 	}
 
-	for _, doc := range docs.Documents {
+	for _, doc := range docs {
 		if doc.Title == title {
 			return doc, nil
 		}
 	}
 
 	return nil, nil
+}
+
+func (d *DocumentService) GetByTagId(tagid string) ([]*Document, error) {
+	var docsToReturn []*Document
+	docs, err := d.GetAll()
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, doc := range docs {
+		for _, tag := range doc.Tags {
+			if tag.Id == tagid {
+				docsToReturn = append(docsToReturn, doc)
+			}
+		}
+	}
+
+	return docsToReturn, nil
 }
 
 func (d *DocumentService) Add(doc *Document) (*Document, error) {

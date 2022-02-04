@@ -68,7 +68,36 @@ func (ic *ImportClient) Import() ([]*teedy.Document, error) {
 		doc := teedy.NewDocument(note.Title, ic.language)
 		doc.Description = string(note.Content)
 
-		// add any tags
+		if note.Tags != nil { //if evernote tags exist, iterate through them and find if they already exist; if not, add them
+			for _, word := range note.Tags {
+				newtag, err := ic.client.Tag.GetByName(word)
+
+				if err != nil {
+					fmt.Printf("Tag GetByName error: %s\n", err)
+					continue
+				}
+
+				if newtag == nil { //Tag not found; make a new tag
+					addedtag, err := teedy.NewTag(word, "#4caf50", "") //fill out the TAG structure, tag colour green for Evernote, no parent
+
+					if err != nil {
+						return nil, fmt.Errorf("error in newtag structure for %s: %v", word, err)
+					} else {
+						resulttag, err := ic.client.Tag.Add(addedtag) //add the tag to Teedy
+
+						if err != nil {
+							return nil, fmt.Errorf("unable to create tag %s: %v", word, err)
+						} else {
+							doc.Tags = append(doc.Tags, &teedy.Tag{Id: resulttag.Id}) //add the new tag ID to the new document.
+						}
+					}
+				} else { //Tag was found,add the id to the document.
+					doc.Tags = append(doc.Tags, &teedy.Tag{Id: newtag.Id})
+				}
+			}
+		}
+
+		// add any command line specified tags
 		for _, tagId := range ic.tagId {
 			doc.Tags = append(doc.Tags, &teedy.Tag{Id: tagId})
 		}
@@ -80,6 +109,32 @@ func (ic *ImportClient) Import() ([]*teedy.Document, error) {
 		}
 
 		doc.CreateDate = convertedTime
+
+		//Truncate input with limits taken from Teedy's html note input page.
+		titlelimit := 100
+		desclimit := 4000
+
+		titletruncated := false
+		desctruncated := false
+		originaltitle := doc.Title
+
+		for i := titlelimit; len(doc.Title) > titlelimit; i-- { //Truncate truncates to nearest word, occasionally exceeding the max length
+			doc.Title = govalidator.Truncate(doc.Title, i, "") //Reduce the truncated length until it fits
+			titletruncated = true
+		}
+
+		if titletruncated {
+			fmt.Printf("Title truncated for note '%s'\n", originaltitle)
+		}
+
+		for i := desclimit; len(doc.Description) > desclimit; i-- { //Do the same for description
+			doc.Description = govalidator.Truncate(doc.Description, i, "")
+			desctruncated = true
+		}
+
+		if desctruncated {
+			fmt.Printf("Description truncated for note '%s'\n", originaltitle)
+		}
 
 		addedDoc, err := ic.client.Document.Add(doc)
 
